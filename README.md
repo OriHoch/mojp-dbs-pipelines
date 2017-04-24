@@ -2,7 +2,7 @@
 
 Pipelines for data sync of Jewish data sources to the DB of the muesum of the Jewish people
 
-Uses the [datapackage pipelines](https://github.com/frictionlessdata/datapackage-pipelines framework)
+Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
 
 ## Overview
 
