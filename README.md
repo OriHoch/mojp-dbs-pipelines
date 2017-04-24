@@ -14,7 +14,7 @@ $ pip install mojp-dbs-pipelines
 $ export CLEARMASH_API_KEY=""
 $ export MOJP_DBS_ELASTICSEARCH_HOST="localhost:9200"
 $ export MOJP_DBS_ELASTICSEARCH_INDEX="mojp"
-$ CLEARMASH_API_KEY="" mojp-dbs-dpp run clearmash
+$ mojp-dbs-dpp run clearmash
 ```
 Now you will have all Clearamsh items in the Elasticsearch DB indexed according to MoJP requirements
 
