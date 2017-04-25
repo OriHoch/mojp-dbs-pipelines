@@ -1,6 +1,6 @@
 # mojp-dbs-pipelines
 
-[![Travis](https://img.shields.io/travis/beit-Hatfutsot/mojp-dbs-pipelines/master.svg)](https://travis-ci.org/beit-Hatfutsot/mojp-dbs-pipelines)
+[![Travis](https://img.shields.io/travis/Beit-Hatfutsot/mojp-dbs-pipelines/master.svg)](https://travis-ci.org/Beit-Hatfutsot/mojp-dbs-pipelines)
 
 Pipelines for data sync of Jewish data sources to the DB of the muesum of the Jewish people
 
