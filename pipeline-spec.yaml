@@ -1,0 +1,17 @@
+clearmash:
+  title: Download, convert, validate and sync data from Clearmash to MoJP databases
+  pipeline:
+    -
+      run: add_metadata
+      parameters:
+        name: clearmash
+    -
+      run: mojp_dbs_pipelines.clearmash.processors.add_resources
+    -
+      run: mojp_dbs_pipelines.clearmash.processors.convert_to_dbs_documents
+    -
+      run: mojp_dbs_pipelines.common.processors.sync_dbs_documents
+    -
+      run: dump.to_path
+      parameters:
+        out-path: data/clearmash

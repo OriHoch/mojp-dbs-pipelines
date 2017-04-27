@@ -10,24 +10,29 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 This project provides pipelines that sync data from multiple external sources to the [MoJP](http://dbs.bh.org.il/) Elasticsearch DB.
 
+## Downloading
+```
+$ wget https://github.com/Beit-Hatfutsot/mojp-dbs-pipelines/archive/master.zip -O mojp-dbs-pipelines.zip
+$ unzip mojp-dbs-pipelines.zip
+$ cd mojp-dbs-pipelines
+```
+
+## Installation
+You should be inside a virtualenv with a supported Python version (3.6.1), see the [contribution guide](CONTRIBUTING.md) for more details
+```
+(mojp-dbs-pipelines) mojp-dbs-pipelines$ make install && make test
+```
+
 ## Usage
+Also, inside the activated python virtualenv
 ```
-$ pip install mojp-dbs-pipelines
-$ export CLEARMASH_API_KEY=""
-$ export MOJP_DBS_ELASTICSEARCH_HOST="localhost:9200"
-$ export MOJP_DBS_ELASTICSEARCH_INDEX="mojp"
-$ mojp-dbs-dpp run clearmash
+(mojp-dbs-pipelines) mojp-dbs-pipelines$ dpp
 ```
-Now you will have all Clearamsh items in the Elasticsearch DB indexed according to MoJP requirements
 
 ## Development
 
 Check out the [contribution guide](CONTRIBUTING.md)
 
-## Data Sources
+## Additional documentation
 
-### MoJP Clearmash
-
-Clearmash is A CMS system which is used by MoJP for the MoJP own data
-
-Clearmash exposes an [API](https://bh.clearmash.com/API/V5/Services/) to get the data
+* [clearmash pipeline](/mojp_dbs_pipelines/clearmash/README.md)
