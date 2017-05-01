@@ -11,6 +11,9 @@ class MojpDbsPipelinesFixtureTests(ProcessorFixtureTestsBase):
     def _get_processor_file(self, processor):
         return os.path.join(ROOT_PATH, "mojp_dbs_pipelines", processor.strip())
 
+    def _get_procesor_env(self):
+        return {"MOJP_PIPELINES_ENV": os.environ.get("MOJP_PIPELINES_ENV")}
+
     def get_tests(self):
         for filename, func in super(MojpDbsPipelinesFixtureTests, self).get_tests():
             yield filename.replace(".jinja2", ""), func
