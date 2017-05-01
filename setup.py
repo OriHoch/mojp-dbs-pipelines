@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import os, sys, time
+import os, time
 
 if os.path.exists("VERSION.txt"):
     # this file can be written by CI tools (e.g. Travis)
@@ -13,13 +13,11 @@ setup(
     name="mojp-dbs-pipelines",
     version=version,
     packages=find_packages(exclude=["tests", "test.*"]),
-    install_requires=["datapackage-pipelines"],
+    install_requires=["datapackage-pipelines",
+                      "zeep",
+                      "python-dotenv",
+                      "jinja2"],
     extras_require={'develop': ["tox"]},
     url='https://github.com/beit-Hatfutsot/mojp-dbs-pipelines',
     license='MIT',
-    entry_points={
-      'console_scripts': [
-        'mojp-dbs-dpp = mojp_dbs_pipelines.cli:cli',
-      ]
-    },
 )

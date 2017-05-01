@@ -1,0 +1,44 @@
+clearmash/processors/convert_to_dbs_documents.py
+--
+{}
+--
+{
+    "name": "clearmash",
+    "resources": [
+        {
+            "name": "clearmash",
+            "path": "clearmash.csv",
+            "schema": {
+                "fields": [
+                    {"name": "id", "type": "integer"},
+                    {"name": "doc", "type": "string"}
+                ]
+            }
+        }
+    ]
+}
+--
+{"id": 1, "doc": "{\"title\": \"foobar\", \"content\": \"bazbax\"}"}
+{"id": 2, "doc": "{\"title\": \"222\", \"content\": \"2222\"}"}
+--
+{
+    "name": "clearmash",
+    "resources": [
+        {
+            "name": "dbs_docs",
+            "path": "dbs_docs.csv",
+            "schema": {
+                "fields": [
+                    {"name": "source", "type": "string"},
+                    {"name": "id", "type": "string"},
+                    {"name": "doc", "type": "string"}
+                ]
+            }
+        }
+    ]
+}
+--
+{"id": "1", "source": "clearmash", "doc": "{\"title\": \"foobar\", \"content\": \"bazbax\", \"implemented\": \"not yet\", \"sorry\": true}"}
+{"id": "2", "source": "clearmash", "doc": "{\"title\": \"222\", \"content\": \"2222\", \"implemented\": \"not yet\", \"sorry\": true}"}
+
+{}
