@@ -3,6 +3,10 @@ from itertools import chain
 
 
 class BaseProcessor(object):
+    """
+    all mojp processor should extend this class
+    it is pluggable into our unit tests to allow mocks and automated tests of processors
+    """
 
     def __init__(self, parameters, datapackage, resources):
         self._parameters = parameters
