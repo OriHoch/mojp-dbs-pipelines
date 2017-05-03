@@ -3,5 +3,9 @@ python:
 - 3.6
 install:
 - make install
+- make ci_environment
 script:
 - make test
+cache:
+  directories:
+  - $HOME/cache

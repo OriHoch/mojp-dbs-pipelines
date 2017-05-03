@@ -1,5 +1,6 @@
 from datapackage_pipelines.wrapper import ingest, spew
 from itertools import chain
+from mojp_dbs_pipelines import settings
 
 
 class BaseProcessor(object):
@@ -8,10 +9,11 @@ class BaseProcessor(object):
     it is pluggable into our unit tests to allow mocks and automated tests of processors
     """
 
-    def __init__(self, parameters, datapackage, resources):
+    def __init__(self, parameters, datapackage, resources, mock_settings=None):
         self._parameters = parameters
         self._datapackage = datapackage
         self._resources = resources
+        self._settings = settings if not mock_settings else mock_settings
 
     @classmethod
     def main(cls):
@@ -26,6 +28,16 @@ class BaseProcessor(object):
 
     def _process(self, datapackage, resources):
         return datapackage, resources
+
+    def _get_settings(self, key=None, default=None):
+        if key:
+            ret = getattr(self._settings, key, default)
+            if default is None and ret is None:
+                raise Exception("unknown key: {}".format(key))
+            else:
+                return ret
+        else:
+            return self._settings
 
 
 class AddResourcesProcessor(BaseProcessor):

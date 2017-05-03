@@ -1,4 +1,4 @@
-.PHONY: install test clean
+.PHONY: install test clean ci_environment
 
 install:
 	pip install --upgrade pip setuptools
@@ -10,3 +10,6 @@ test:
 clean:
 	pip uninstall -y mojp_dbs_pipelines || true
 	pip freeze | xargs pip uninstall -y || true
+
+ci_environment:
+	bin/setup_ci_environment.sh

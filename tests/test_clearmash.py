@@ -1,12 +1,12 @@
 from .common import assert_processor
-from mojp_dbs_pipelines.clearmash.processors.add_resources import AddClearmashResources
-from mojp_dbs_pipelines.clearmash.processors.convert_to_dbs_documents import ConvertClearmashResources
+from mojp_dbs_pipelines.clearmash.processors.download import ClearmashDownloadProcessor
+from mojp_dbs_pipelines.clearmash.processors.convert import ClearmashConvertProcessor
 import json
 
 
-def test_add_resources():
+def test_download():
     assert_processor(
-        AddClearmashResources,
+        ClearmashDownloadProcessor,
         parameters={},
         datapackage={"resources": []},
         resources=[],
@@ -16,20 +16,20 @@ def test_add_resources():
                 "path": "clearmash.csv",
                 "schema": {"fields": [
                     {"name": "id", "type": "integer"},
-                    {"name": "doc", "type": "string"}
+                    {"name": "source_doc", "type": "string"}
                 ]}
             }]
         },
         expected_resources=[[
-            {"id": 1, "doc": json.dumps({"title": "foobar", "content": "bazbax"})},
-            {"id": 2, "doc": json.dumps({"title": "222", "content": "2222"})}
+            {"id": 1, "source_doc": json.dumps({"title": "foobar", "content": "bazbax"})},
+            {"id": 2, "source_doc": json.dumps({"title": "222", "content": "2222"})}
         ]]
     )
 
 
 def test_convert_to_dbs_documents():
     assert_processor(
-        ConvertClearmashResources,
+        ClearmashConvertProcessor,
         parameters={},
         datapackage={
             "resources": [{
@@ -37,13 +37,13 @@ def test_convert_to_dbs_documents():
                 "path": "clearmash.csv",
                 "schema": {"fields": [
                     {"name": "id", "type": "integer"},
-                    {"name": "doc", "type": "string"}
+                    {"name": "source_doc", "type": "string"}
                 ]}
             }]
         },
         resources=[[
-            {"id": 1, "doc": json.dumps({"title": "foobar", "content": "bazbax"})},
-            {"id": 2, "doc": json.dumps({"title": "222", "content": "2222"})}
+            {"id": 1, "source_doc": json.dumps({"title": "foobar", "content": "bazbax"})},
+            {"id": 2, "source_doc": json.dumps({"title": "222", "content": "2222"})}
         ]],
         expected_datapackage={
             "resources": [{
@@ -52,12 +52,15 @@ def test_convert_to_dbs_documents():
                 "schema": {"fields": [
                     {"name": "source", "type": "string"},
                     {"name": "id", "type": "string"},
-                    {"name": "doc", "type": "string"}
+                    {'name': 'version', 'type': 'string', 'description': 'source dependant field, used by sync process to detect document updates'},
+                    {"name": "source_doc", "type": "string"}
                 ]}
             }]
         },
         expected_resources=[[
-            {"source": "clearmash", "id": "1", "doc": '{"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": true}'},
-            {"source": "clearmash", "id": "2", "doc": '{"title": "222", "content": "2222", "implemented": "not yet", "sorry": true}'}
+            {"source": "clearmash", "id": "1", "version": "5",
+             "source_doc": '{"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": true}'},
+            {"source": "clearmash", "id": "2", "version": "5",
+             "source_doc": '{"title": "222", "content": "2222", "implemented": "not yet", "sorry": true}'}
         ]]
     )

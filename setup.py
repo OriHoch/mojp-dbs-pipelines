@@ -16,7 +16,7 @@ setup(
     install_requires=["datapackage-pipelines",
                       "zeep",
                       "python-dotenv",
-                      "jinja2"],
+                      "elasticsearch"],
     extras_require={'develop': ["tox"]},
     url='https://github.com/beit-Hatfutsot/mojp-dbs-pipelines',
     license='MIT',
