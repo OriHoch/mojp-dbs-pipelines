@@ -1,11 +1,13 @@
 language: python
 python:
-- 3.6
+  - 3.6
+before_install:
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.2.deb && sudo dpkg -i --force-confnew elasticsearch-5.3.2.deb && sudo service elasticsearch restart
 install:
-- make install
-- make ci_environment
+  - make install
 script:
-- make test
-cache:
-  directories:
-  - $HOME/cache
+  - make test
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default

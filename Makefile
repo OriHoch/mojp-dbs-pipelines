@@ -10,6 +10,3 @@ test:
 clean:
 	pip uninstall -y mojp_dbs_pipelines || true
 	pip freeze | xargs pip uninstall -y || true
-
-ci_environment:
-	bin/setup_ci_environment.sh
