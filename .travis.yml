@@ -7,6 +7,9 @@ install:
   - make install
 script:
   - make test
+cache:
+  directories:
+    - $HOME/.cache
 addons:
   apt:
     packages:
