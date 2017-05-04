@@ -1,5 +1,5 @@
 from mojp_dbs_pipelines.common.processors.base_processors import FilterResourcesProcessor
-from mojp_dbs_pipelines.common.processors.sync_dbs_documents import DBS_DOCS_TABLE_SCHEMA
+from mojp_dbs_pipelines.common.processors.sync import DBS_DOCS_TABLE_SCHEMA
 import json
 from mojp_dbs_pipelines.clearmash.constants import CLEARMASH_SOURCE_ID
 from copy import deepcopy

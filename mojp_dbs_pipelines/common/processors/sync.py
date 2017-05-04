@@ -15,10 +15,10 @@ DBS_DOCS_SYNC_LOG_TABLE_SCHAME = {"fields": [{"name": "source", "type": "string"
                                              {"name": "sync_msg", "type": "string"}]}
 
 
-class SyncDbsDocumentsProcessor(FilterResourcesProcessor):
+class CommonSyncProcessor(FilterResourcesProcessor):
 
     def __init__(self, *args, **kwargs):
-        super(SyncDbsDocumentsProcessor, self).__init__(*args, **kwargs)
+        super(CommonSyncProcessor, self).__init__(*args, **kwargs)
         self._es = Elasticsearch(self._get_settings("MOJP_ELASTICSEARCH_DB"))
         self._idx = self._get_settings("MOJP_ELASTICSEARCH_INDEX")
 
@@ -63,4 +63,4 @@ class SyncDbsDocumentsProcessor(FilterResourcesProcessor):
 
 
 if __name__ == '__main__':
-    SyncDbsDocumentsProcessor.main()
+    CommonSyncProcessor.main()

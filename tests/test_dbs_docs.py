@@ -1,5 +1,5 @@
 from .common import assert_processor
-from mojp_dbs_pipelines.common.processors.sync_dbs_documents import SyncDbsDocumentsProcessor
+from mojp_dbs_pipelines.common.processors.sync import CommonSyncProcessor
 from elasticsearch import Elasticsearch, NotFoundError
 
 ELASTICSEARCH_TESTS_INDEX = "mojptests"
@@ -15,7 +15,7 @@ def initialize_elasticsearch():
 
 def assert_mock_resources_sync(expected_resource):
     assert_processor(
-        SyncDbsDocumentsProcessor,
+        CommonSyncProcessor,
         mock_settings=type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
                                                        "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX}),
         parameters={},
