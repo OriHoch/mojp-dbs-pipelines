@@ -1,6 +1,7 @@
-from .common import assert_processor
-from mojp_dbs_pipelines.common.processors.sync import CommonSyncProcessor
 from elasticsearch import Elasticsearch, NotFoundError
+
+from datapackage_pipelines_mojp.common.processors.sync import CommonSyncProcessor
+from .common import assert_processor
 
 ELASTICSEARCH_TESTS_INDEX = "mojptests"
 

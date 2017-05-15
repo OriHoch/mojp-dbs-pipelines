@@ -1,4 +1,3 @@
-from datapackage_pipelines.utilities.lib_test_helpers import mock_processor_test
 import os
 
 ROOT_PATH = os.path.join(os.path.dirname(__file__), '..')
@@ -24,5 +23,8 @@ def assert_processor(processor_class, mock_settings=None, parameters=None, datap
         expected_resources = []
     datapackage, resources = processor_class(parameters, datapackage, resources, mock_settings).spew()
     assert datapackage == expected_datapackage, "expected={}, actual={}".format(expected_datapackage, datapackage)
-    actual_resources = listify_resources(resources)
-    assert actual_resources == expected_resources, "expected={}, actual={}".format(expected_resources, actual_resources)
+    if expected_resources:
+        assert listify_resources(resources) == expected_resources, \
+            "expected={}, actual={}".format(expected_resources, actual_resources)
+    else:
+        return resources

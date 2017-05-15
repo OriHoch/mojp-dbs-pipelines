@@ -1,8 +1,8 @@
-# mojp-dbs-pipelines
+# Datapackage pipelines for The Museum of The Jewish People
 
 [![Travis](https://img.shields.io/travis/Beit-Hatfutsot/mojp-dbs-pipelines/master.svg)](https://travis-ci.org/Beit-Hatfutsot/mojp-dbs-pipelines)
 
-Pipelines for data sync of Jewish data sources to the DB of the muesum of the Jewish people
+Pipelines for data sync of Jewish data sources to the DB of The Museum of The Jewish People
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
 
@@ -33,6 +33,13 @@ Also, inside the activated python virtualenv
 
 Check out the [contribution guide](CONTRIBUTING.md)
 
-## Additional documentation
+## Available Data Sources
 
-* [clearmash pipeline](/mojp_dbs_pipelines/clearmash/README.md)
+### Clearmash
+
+Clearmash is A CMS system which is used by MoJP for the MoJP own data
+
+Clearmash exposes an [API](https://bh.clearmash.com/API/V5/Services/) to get the data
+
+relevant links and documentation (clearmash support site requires login)
+* [overview of the services and api urls](https://www.clearmash.com/skn/c7/Support/e1043/External_Resources_API__Server_API_)

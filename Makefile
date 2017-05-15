@@ -1,4 +1,4 @@
-.PHONY: install test clean ci_environment
+.PHONY: install test clean
 
 install:
 	pip install --upgrade pip setuptools
