@@ -9,11 +9,11 @@ class BaseProcessor(object):
     it is pluggable into our unit tests to allow mocks and automated tests of processors
     """
 
-    def __init__(self, parameters, datapackage, resources, mock_settings=None):
+    def __init__(self, parameters, datapackage, resources, settings=None):
         self._parameters = parameters
         self._datapackage = datapackage
         self._resources = resources
-        self._settings = settings if not mock_settings else mock_settings
+        self._settings = settings
 
     @classmethod
     def main(cls):

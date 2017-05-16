@@ -73,8 +73,9 @@ class ClearmashDownloadProcessor(AddResourcesProcessor):
                        "item_url": metadata.pop("Url"),
                        "template_changeset_id": template_reference.pop("ChangesetId"),
                        "template_id": template_reference.pop("TemplateId"),
-                       "metadata": metadata,
-                       "parsed_doc": parsed_doc}
+                       "metadata": json.dumps(metadata),
+                       "parsed_doc": json.dumps(parsed_doc),
+                       "changeset": entity.pop("Changeset")}
             self.item_ids_buffer = []
 
     def _get_resources_iterator(self):
