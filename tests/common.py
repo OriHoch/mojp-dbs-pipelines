@@ -1,4 +1,6 @@
 import os
+from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_TABLE_SCHEMA
+from jsontableschema import Schema
 
 ROOT_PATH = os.path.join(os.path.dirname(__file__), '..')
 
@@ -29,3 +31,7 @@ def assert_processor(processor_class, mock_settings=None, parameters=None, datap
             "expected={}, actual={}".format(expected_resources, resources)
     else:
         return resources
+
+def assert_conforms_to_dbs_schema(row):
+    schema = Schema(DBS_DOCS_TABLE_SCHEMA)
+    return schema.cast_row(row)

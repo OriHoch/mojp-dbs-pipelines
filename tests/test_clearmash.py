@@ -3,7 +3,7 @@ from datapackage_pipelines_mojp.clearmash.processors.download import (ClearmashD
                                                                       TABLE_SCHEMA as DOWNLOAD_TABLE_SCHEMA)
 from datapackage_pipelines_mojp.clearmash.processors.convert import ClearmashConvertProcessor
 from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_TABLE_SCHEMA
-from .common import assert_processor
+from .common import assert_processor, assert_conforms_to_dbs_schema
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
 import os
 from itertools import cycle
@@ -117,13 +117,14 @@ def test_convert_to_dbs_documents():
     resource = next(resources)
     row = next(resource)
     assert list(row.keys()) == ['source', 'id', 'source_doc', 'version',
-                                'title_en', 'title_he',
-                                'content_html_en', 'content_html_he']
+                                 'title','title_he', 'title_en',
+                                 'content_html', 'content_html_he', 'content_html_en']
     assert row["source"] == CLEARMASH_SOURCE_ID
     assert row["id"] == 4501
     source_doc = json.loads(row["source_doc"])
     assert list(source_doc.keys()) == ['document_id', 'item_id', 'item_url', 'template_changeset_id',
                                        'template_id', 'metadata', 'parsed_doc', 'changeset']
+    assert_conforms_to_dbs_schema(row)
     assert row["version"] == "707207-foobarbaz-4501"
     assert row["title_en"] == "Neuchatel"
     assert row["title_he"] == "נשאטל"
