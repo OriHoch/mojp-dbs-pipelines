@@ -10,13 +10,14 @@ else:
 
 # Run
 setup(
-    name="mojp-dbs-pipelines",
+    name="datapackage-pipelines-mojp",
     version=version,
     packages=find_packages(exclude=["tests", "test.*"]),
     install_requires=["datapackage-pipelines",
-                      "zeep",
                       "python-dotenv",
-                      "elasticsearch"],
+                      "elasticsearch",
+                      "pyquery",
+                      "iso-639"],
     extras_require={'develop': ["tox"]},
     url='https://github.com/beit-Hatfutsot/mojp-dbs-pipelines',
     license='MIT',
