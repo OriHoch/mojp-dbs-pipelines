@@ -1,6 +1,6 @@
 from itertools import chain
 from datapackage_pipelines.wrapper import ingest, spew
-from datapackage_pipelines_mojp import settings
+from datapackage_pipelines_mojp import settings as mojp_settings
 
 
 class BaseProcessor(object):
@@ -13,7 +13,7 @@ class BaseProcessor(object):
         self._parameters = parameters
         self._datapackage = datapackage
         self._resources = resources
-        self._settings = settings
+        self._settings = mojp_settings if not settings else settings
 
     @classmethod
     def main(cls):

@@ -10,12 +10,12 @@ def populate_iso_639_language_field(dbs_row, attribute_prefix, source_lang_dict)
     dbs_row.update({attribute_prefix: {},
                     "{}_he".format(attribute_prefix): None,
                     "{}_en".format(attribute_prefix): None})
-    for lang, title in source_lang_dict.items():
-        if lang not in KNOWN_LANGS:
-            raise Exception("language id not according to iso639 standard: {}".format(lang))
-        elif lang in ["he", "en"]:
-            dbs_row["{}_{}".format(attribute_prefix, lang)] = title
-        else:
-            dbs_row[attribute_prefix][lang] = title
+    if source_lang_dict:
+        for lang, title in source_lang_dict.items():
+            if lang not in KNOWN_LANGS:
+                raise Exception("language id not according to iso639 standard: {}".format(lang))
+            elif lang in ["he", "en"]:
+                dbs_row["{}_{}".format(attribute_prefix, lang)] = title
+            else:
+                dbs_row[attribute_prefix][lang] = title
     dbs_row[attribute_prefix] = json.dumps(dbs_row[attribute_prefix])
-

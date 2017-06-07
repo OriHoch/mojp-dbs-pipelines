@@ -17,7 +17,7 @@ setup(
                       "python-dotenv",
                       "elasticsearch",
                       "pyquery",
-                      "iso639"],
+                      "iso-639"],
     extras_require={'develop': ["tox"]},
     url='https://github.com/beit-Hatfutsot/mojp-dbs-pipelines',
     license='MIT',
