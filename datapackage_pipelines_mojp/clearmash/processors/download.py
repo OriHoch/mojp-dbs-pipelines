@@ -7,10 +7,6 @@ from datapackage_pipelines_mojp.clearmash.constants import (CONTENT_FOLDERS, DOW
 
 class ClearmashDownloadProcessor(BaseDownloadProcessor):
 
-    def __init__(self, *args, **kwargs):
-        self.clearmash_api = None
-        super(ClearmashDownloadProcessor, self).__init__(*args, **kwargs)
-
     def _get_clearmash_api(self):
         return ClearmashApi()
 

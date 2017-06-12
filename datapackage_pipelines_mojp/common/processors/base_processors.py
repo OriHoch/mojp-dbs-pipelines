@@ -82,3 +82,29 @@ class FilterResourcesProcessor(BaseProcessor):
         datapackage = self._filter_datapackage(datapackage)
         resources = self._filter_resources(resources, datapackage)
         return super(FilterResourcesProcessor, self)._process(datapackage, resources)
+
+
+class BaseDownloadProcessor(AddResourcesProcessor):
+
+    def _get_resource_descriptors(self):
+        return [{"name": self._get_source_name(),
+                 "path": "{}.csv".format(self._get_source_name()),
+                 "schema": self._get_schema()}]
+
+    def _get_resources_iterator(self):
+        if self._parameters.get("mock"):
+            return [self._mock_download()]
+        else:
+            return [self._download()]
+
+    def _get_schema(self):
+        raise NotImplementedError()
+
+    def _download(self):
+        raise NotImplementedError()
+
+    def _mock_download(self):
+        raise NotImplementedError()
+
+    def _get_source_name(self):
+        raise NotImplementedError()
