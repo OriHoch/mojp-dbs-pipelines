@@ -17,7 +17,7 @@ Docker is used to run all the services and apps in a consistent way for both dev
   * curl -L https://github.com/docker/compose/releases/download/1.13.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
   * sudo chmod +x /usr/local/bin/docker-compose
 * fix Docker permissions
-  * usermod -aG docker $USER
+  * sudo usermod -aG docker $USER
   * sudo su -l $USER
   * docker ps
   * restart to make sure group change takes effect
