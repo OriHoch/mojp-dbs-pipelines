@@ -71,10 +71,10 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
-            logging.info("processing row ({source}:{collection},{id}@{version}".format(source=row["source"],
-                                                                                       collection=row["collection"],
-                                                                                       version=row["version"],
-                                                                                       id=row["id"]))
+            logging.info("processing row ({source}:{collection},{id}@{version}".format(source=row.get("source"),
+                                                                                       collection=row.get("collection"),
+                                                                                       version=row.get("version"),
+                                                                                       id=row.get("id")))
             original_row = deepcopy(row)
             try:
                 row = deepcopy(original_row)
