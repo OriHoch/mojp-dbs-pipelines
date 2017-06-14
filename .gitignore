@@ -93,3 +93,4 @@ ENV/
 /.dpp.db
 
 /docker-compose.override.yml
+/*.pid
