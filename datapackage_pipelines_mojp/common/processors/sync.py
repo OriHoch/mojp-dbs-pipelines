@@ -5,6 +5,7 @@ from datapackage_pipelines_mojp.settings import temp_loglevel, logging
 from datapackage_pipelines_mojp.common.constants import ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN
 import iso639
 from copy import deepcopy
+import logging
 
 COLLECTION_FIELD_DESCRIPTION = "standard collection identifier (e.g. places / familyNames etc..). " \
                                "must be related to one of the COLLECTION_? constants"
@@ -15,11 +16,11 @@ DBS_DOCS_TABLE_SCHEMA = {"fields": [{"name": "source", "type": "string"},
                                     {"name": "version", "type": "string",
                                      "description": "source dependant field, used by sync process to detect document updates"},
                                     {"name": "collection", "type": "string", "description": COLLECTION_FIELD_DESCRIPTION},
-                                    {"name": "source_doc", "type": "string"},
-                                    {"name": "title", "type": "string"},
+                                    {"name": "source_doc", "type": "object"},
+                                    {"name": "title", "type": "object", "description": "languages other then he/en"},
                                     {"name": "title_he", "type": "string"},
                                     {"name": "title_en", "type": "string"},
-                                    {"name": "content_html", "type": "string"},
+                                    {"name": "content_html", "type": "object", "description": "languages other then he/en"},
                                     {"name": "content_html_he", "type": "string"},
                                     {"name": "content_html_en", "type": "string"}]}
 
@@ -70,11 +71,19 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
-            row = deepcopy(row)
+            logging.info("processing row ({source}:{collection},{id}@{version}".format(source=row["source"],
+                                                                                       collection=row["collection"],
+                                                                                       version=row["version"],
+                                                                                       id=row["id"]))
+            original_row = deepcopy(row)
             try:
-                source_doc = json.loads(row.pop("source_doc"))
-                # base for the final es doc is the source doc
-                new_doc = source_doc
+                row = deepcopy(original_row)
+                source_doc = row.pop("source_doc")
+                # the source doc is used as the base for the final es doc
+                # but, we make sure all attributes are strings to ensure we don't have wierd values there (we have)
+                new_doc = {}
+                for k, v in source_doc.items():
+                    new_doc[k] = str(v)
                 # then, we override with the other row values
                 new_doc.update(row)
                 # rename the id field
@@ -82,7 +91,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 # populate the language fields
                 for lang_field in ["title", "content_html"]:
                     if row[lang_field]:
-                        for lang, value in json.loads(row[lang_field]).items():
+                        for lang, value in row[lang_field].items():
                             if lang in iso639.languages.part1:
                                 new_doc["{}_{}".format(lang_field, lang)] = value
                             else:
@@ -104,8 +113,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             except Exception:
                 logging.exception("unexpected exception, "
                                   "resource_descirptor={0}, "
-                                  "row={1}".format(json.dumps(resource_descriptor),
-                                                   json.dumps(row)))
+                                  "row={1}".format(resource_descriptor,
+                                                   original_row))
                 raise
         return row
 

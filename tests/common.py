@@ -17,13 +17,13 @@ ELASTICSEARCH_TESTS_INDEX = "mojptests"
 
 MOCK_DATA_FOR_SYNC = [
     {"source": CLEARMASH_SOURCE_ID, "id": 1, "version": "five", "collection": COLLECTION_PLACES,
-     "source_doc": '{"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": true}',
-     "title": json.dumps({"el":"greek title ελληνικά, elliniká"}), "title_he": "", "title_en": "",
-     "content_html": '{"el":"greek content<br/><b>HTML!</b>"}', "content_html_en": "", "content_html_he": ""},
+     "source_doc": {"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": True},
+     "title": {"el":"greek title ελληνικά, elliniká"}, "title_he": "", "title_en": "",
+     "content_html": {"el":"greek content<br/><b>HTML!</b>"}, "content_html_en": "", "content_html_he": ""},
     {"source": CLEARMASH_SOURCE_ID, "id": "2", "version": "five", "collection": COLLECTION_FAMILY_NAMES,
-     "source_doc": '{"title": "222", "content": "2222", "implemented": "not yet", "sorry": true}',
-     "title": "", "title_he": "", "title_en": "",
-     "content_html": '{"it":"italian content<br/><b>HTML!</b>"}', "content_html_en": "", "content_html_he": ""}
+     "source_doc": {"title": "222", "content": "2222", "implemented": "not yet", "sorry": True},
+     "title": {}, "title_he": "", "title_en": "",
+     "content_html": {"it":"italian content<br/><b>HTML!</b>"}, "content_html_en": "", "content_html_he": ""}
 ]
 
 EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
@@ -40,7 +40,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          # (title field was overridden and deleted)
                                          "content": "bazbax",
                                          "implemented": "not yet",
-                                         "sorry": True},
+                                         "sorry": "True"},
                                         {"version": "five",
                                          "source": "clearmash",
                                          "source_id": "2",
@@ -52,7 +52,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "content_html_he": "",
                                          "content": "2222",
                                          "implemented": "not yet",
-                                         "sorry": True}]
+                                         "sorry": "True"}]
 
 
 def listify_resources(resources):

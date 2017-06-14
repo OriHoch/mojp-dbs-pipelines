@@ -1,4 +1,3 @@
-import json
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseDownloadProcessor
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, MockClearMashApi, parse_clearmash_document
 from datapackage_pipelines_mojp.clearmash.constants import (CONTENT_FOLDERS, DOWNLOAD_TABLE_SCHEMA,
@@ -48,8 +47,8 @@ class ClearmashDownloadProcessor(BaseDownloadProcessor):
                        "item_url": metadata.pop("Url"),
                        "template_changeset_id": template_reference.pop("ChangesetId"),
                        "template_id": template_reference.pop("TemplateId"),
-                       "metadata": json.dumps(metadata),
-                       "parsed_doc": json.dumps(parsed_doc),
+                       "metadata": metadata,
+                       "parsed_doc": parsed_doc,
                        "changeset": int(entity.pop("Changeset")),
                        "collection": folder["collection"]}
             self.item_ids_buffer = []

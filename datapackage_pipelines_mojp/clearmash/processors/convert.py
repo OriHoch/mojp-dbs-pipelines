@@ -1,4 +1,3 @@
-import json
 from datapackage_pipelines_mojp.common.processors.sync import (DBS_DOCS_TABLE_SCHEMA,
                                                                INPUT_RESOURCE_NAME as DBS_DOCS_RESOURCE_NAME)
 from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
@@ -19,10 +18,10 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
         return self._cm_row_to_dbs_row(row) if resource_descirptor["name"] == DBS_DOCS_RESOURCE_NAME else row
 
     def _cm_row_to_dbs_row(self, cm_row):
-        parsed_doc = json.loads(cm_row["parsed_doc"])
+        parsed_doc = cm_row["parsed_doc"]
         dbs_row = {"source": CLEARMASH_SOURCE_ID,
                    "id": str(cm_row["item_id"]),
-                   "source_doc": json.dumps(cm_row),
+                   "source_doc": cm_row,
                    "version": "{}-{}".format(cm_row["changeset"], cm_row["document_id"]),
                    "collection": self._get_collection(cm_row)}
         populate_iso_639_language_field(dbs_row, "title", parsed_doc.get("entity_name"))

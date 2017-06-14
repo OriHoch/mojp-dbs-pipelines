@@ -62,9 +62,9 @@ DOWNLOAD_TABLE_SCHEMA = {"fields": [{"name": "document_id", "type": "string",
                                      "description": "can help to identify the item type"},
                                     {"name": "changeset", "type": "integer",
                                      "description": ""},
-                                    {"name": "metadata", "type": "string",
-                                     "description": "json of remaining unparsed attribute"},
-                                    {"name": "parsed_doc", "type": "string",
-                                     "description": "json of remaining unparsed attribute"}]}
+                                    {"name": "metadata", "type": "object",
+                                     "description": "full metadata"},
+                                    {"name": "parsed_doc", "type": "object",
+                                     "description": "all other attributes"}]}
 
 ITEM_IDS_BUFFER_LENGTH = 10

@@ -1,0 +1,14 @@
+# you can copy this file to docker-compose.override.yml to modify compose settings
+# usually you will want to modify the environment variables
+version: '3'
+
+services:
+  app:
+    # for development - you can mount the host directory inside the docker
+    # that way code changes are reflected without having to rebuild
+    # volumes:
+    #   - .:/mojp
+    environment:
+      - "CLEARMASH_CLIENT_TOKEN="
+      - "MOJP_ELASTICSEARCH_DB="
+      - "MOJP_ELASTICSEARCH_INDEX="
