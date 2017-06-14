@@ -6,14 +6,14 @@ Docker is used to run all the services and apps in a consistent way for both dev
 
 ### Installation on Ubuntu 17.04
 
-* Install latest Docker:
+* [Install Docker](https://docs.docker.com/engine/installation/) (tested with version 17.03)
   * sudo apt-get remove docker docker-engine docker-compose docker.io
   * sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
   * curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   * sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
   * sudo apt-get update
   * sudo apt-get install docker-ce
-* Install Docker compose
+* [Install Docker Compose](https://docs.docker.com/compose/install/)
   * curl -L https://github.com/docker/compose/releases/download/1.13.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
   * sudo chmod +x /usr/local/bin/docker-compose
 * fix Docker permissions
