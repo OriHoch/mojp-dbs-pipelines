@@ -1,5 +1,4 @@
 import iso639
-import json
 
 KNOWN_LANGS = iso639.languages.part1.keys()
 
@@ -18,4 +17,4 @@ def populate_iso_639_language_field(dbs_row, attribute_prefix, source_lang_dict)
                 dbs_row["{}_{}".format(attribute_prefix, lang)] = title
             else:
                 dbs_row[attribute_prefix][lang] = title
-    dbs_row[attribute_prefix] = json.dumps(dbs_row[attribute_prefix])
+    dbs_row[attribute_prefix] = dbs_row[attribute_prefix]

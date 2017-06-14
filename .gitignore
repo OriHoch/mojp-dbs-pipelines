@@ -91,3 +91,6 @@ ENV/
 /.idea
 /data
 /.dpp.db
+
+/docker-compose.override.yml
+/*.pid

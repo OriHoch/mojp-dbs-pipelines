@@ -1,11 +1,10 @@
-from .common import (ELASTICSEARCH_TESTS_INDEX,
-                     given_empty_elasticsearch_instance,
+from .common import (given_empty_elasticsearch_instance,
                      when_running_sync_processor_on_mock_data,
                      es_doc,
                      MOCK_DATA_FOR_SYNC,
                      EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC)
-from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
 from copy import deepcopy
+from .mocks.data import FAMILY_NAMES_BEN_AMARA
 
 
 def test_sync_with_invalid_collection():
@@ -56,3 +55,8 @@ def test_update():
                                                                  refresh_elasticsearch=es)
     # item is updated in ES
     assert next(sync_log_resource) == sync_log(version="two", sync_msg='updated doc in ES (old version = "one")')
+
+def test_doc_sync_to_es_with_real_clearmash_docs():
+    es = given_empty_elasticsearch_instance()
+    sync_log = when_running_sync_processor_on_mock_data([FAMILY_NAMES_BEN_AMARA], refresh_elasticsearch=es)
+    assert next(sync_log)["sync_msg"] == "added to ES"

@@ -15,3 +15,7 @@ Python 3.6.1
 $ make install
 $ make test
 ```
+
+## See Also
+
+To run the full datapackage-pipelines environment you should use Docker, see [README-DOCKER](README-DOCKER.md) for more details.
