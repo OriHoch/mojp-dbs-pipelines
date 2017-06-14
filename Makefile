@@ -1,4 +1,4 @@
-.PHONY: install test clean docker-build docker-start docker-clean-start docker-logs docker-stop
+.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop
 
 install:
 	pip install --upgrade pip setuptools
@@ -37,5 +37,5 @@ docker-clean-start:
 	echo
 	make docker-logs-f
 
-docker-stop
+docker-stop:
 	docker-compose stop
