@@ -15,6 +15,12 @@ Python 3.6.1
 $ make install
 $ make test
 ```
+## Tests
+Tests are executed by running `$ make test`, but can also be executed by running:
+   * `$ py.test tests` for all tests
+   
+       or
+   * `$ py.test tests/test_clearmash_api.py` (**example**) to run the specific single test 'test_clearmash_api.py'.
 
 ## See Also
 
