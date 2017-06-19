@@ -18,7 +18,10 @@ setup(
                       "elasticsearch",
                       "pyquery",
                       "iso-639"],
-    extras_require={'develop': ["tox"]},
+    extras_require={'develop': ["tox",
+                                "pytest",
+                                "mock"]
+                   },
     url='https://github.com/beit-Hatfutsot/mojp-dbs-pipelines',
     license='MIT',
 )
