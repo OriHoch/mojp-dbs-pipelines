@@ -23,7 +23,9 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
                    "id": str(cm_row["item_id"]),
                    "source_doc": cm_row,
                    "version": "{}-{}".format(cm_row["changeset"], cm_row["document_id"]),
-                   "collection": self._get_collection(cm_row)}
+                   "collection": self._get_collection(cm_row),
+                   "main_image_url": "",
+                   "main_thumbnail_image_url": ""}
         populate_iso_639_language_field(dbs_row, "title", parsed_doc.get("entity_name"))
         populate_iso_639_language_field(dbs_row, "content_html", parsed_doc.get("_c6_beit_hatfutsot_bh_base_template_description"))
         return dbs_row
