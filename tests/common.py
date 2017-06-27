@@ -18,7 +18,7 @@ ELASTICSEARCH_TESTS_INDEX = "mojptests"
 MOCK_DATA_FOR_SYNC = [
     {"source": CLEARMASH_SOURCE_ID, "id": 1, "version": "five", "collection": COLLECTION_PLACES,
      "source_doc": {"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": True},
-     "title": {"el":"greek title ελληνικά, elliniká"}, "title_he": "", "title_en": "",
+     "title": {"el":"Greek title ελληνικά, elliniká"}, "title_he": "", "title_en": "",
      "content_html": {"el":"greek content<br/><b>HTML!</b>"}, "content_html_en": "", "content_html_he": ""},
     {"source": CLEARMASH_SOURCE_ID, "id": "2", "version": "five", "collection": COLLECTION_FAMILY_NAMES,
      "source_doc": {"title": "222", "content": "2222", "implemented": "not yet", "sorry": True},
@@ -30,7 +30,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "source": "clearmash",
                                          "source_id": "1",
                                          "collection": "places",
-                                         "title_el": "greek title ελληνικά, elliniká", "greek title ελληνικά, elliniká"
+                                         "title_el": ["Greek title ελληνικά, elliniká", "greek title ελληνικά, elliniká"],
                                          "title_he": "",
                                          "title_en": "",
                                          "title_he_lc": "",
