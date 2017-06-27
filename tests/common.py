@@ -30,7 +30,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "source": "clearmash",
                                          "source_id": "1",
                                          "collection": "places",
-                                         "title_el": "greek title ελληνικά, elliniká",
+                                         "title_el": "greek title ελληνικά, elliniká", "greek title ελληνικά, elliniká"
                                          "title_he": "",
                                          "title_en": "",
                                          "title_he_lc": "",
