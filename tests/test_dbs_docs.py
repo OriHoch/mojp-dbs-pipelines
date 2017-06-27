@@ -41,10 +41,10 @@ def test_update():
     sync_log = lambda **kwargs: dict({"source": "clearmash", "id": "666", "collection": "places"}, **kwargs)
     # do initial sync for a specific doc to ES
     es = given_empty_elasticsearch_instance()
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", title_en="doc_title"),
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", title_en="Doc_title"),
                                                                  refresh_elasticsearch=es)
     assert next(sync_log_resource) == sync_log(version="one", sync_msg="added to ES")
-    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", title_en="doc_title")
+    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", title_en="Doc_title", title_en_lc="doc_title")
     # now, update the item in the mock data, but don't change the version
     sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", title_en="new_doc_title"),
                                                                  refresh_elasticsearch=es)

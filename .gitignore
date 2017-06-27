@@ -45,6 +45,10 @@ coverage.xml
 *,cover
 .hypothesis/
 
+# VS Code
+.vscode
+.vscode/
+
 # Translations
 *.mo
 *.pot

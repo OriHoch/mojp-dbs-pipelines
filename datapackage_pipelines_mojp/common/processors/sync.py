@@ -21,6 +21,9 @@ DBS_DOCS_TABLE_SCHEMA = {"fields": [{"name": "source", "type": "string"},
                                      "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
                                     {"name": "title_he", "type": "string"},
                                     {"name": "title_en", "type": "string"},
+                                    # TODO: check if _lc should be in this scheme
+                                    # {"name": "title_he_lc", "type": "string"},
+                                    # {"name": "title_en_lc", "type": "string"},
                                     {"name": "content_html", "type": "object",
                                      "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
                                     {"name": "content_html_he", "type": "string"},
@@ -94,12 +97,25 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 new_doc.update(row)
                 # rename the id field
                 new_doc["source_id"] = str(new_doc.pop("id"))
+                # add lower case titles
+                new_doc["title_en_lc"] = new_doc["title_en"].lower()
+                if new_doc["title_en"] == new_doc["title_he"]:
+                    new_doc["title_he_lc"] = new_doc["title_en_lc"]
+                else:
+                    new_doc["title_he_lc"] = new_doc["title_he"]
                 # populate the language fields
                 for lang_field in ["title", "content_html"]:
                     if row[lang_field]:
                         for lang, value in row[lang_field].items():
                             if lang in iso639.languages.part1:
                                 new_doc["{}_{}".format(lang_field, lang)] = value
+                                # add lower case lang_title if possible
+                                try:
+                                    lc = value.lower()
+                                    if lc:
+                                        new_doc["{}_{}".format(lang_field, lang)] = [value, lc]
+                                except Exception:
+                                    continue
                             else:
                                 raise Exception("language identifier not according to iso639 standard: {}".format(lang))
                     # delete the combined json lang field from the new_doc
