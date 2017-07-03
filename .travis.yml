@@ -17,6 +17,6 @@ addons:
       - oracle-java8-set-default
 deploy:
   provider: script
-  script: if [ "${encrypted_debe730ce1aa_iv}" != "" ]; then ssh -i `pwd`/deploy-mojp-dbs-pipelines.id_rsa bhs@devapi.dbs.bh.org.il; fi
+  script: if [ "$encrypted_debe730ce1aa_key" != "" ]; then ssh -i `pwd`/deploy-mojp-dbs-pipelines.id_rsa bhs@devapi.dbs.bh.org.il; fi
   on:
     branch: master
