@@ -94,3 +94,5 @@ ENV/
 
 /docker-compose.override.yml
 /*.pid
+
+/deploy-mojp-dbs-pipelines.id_rsa
