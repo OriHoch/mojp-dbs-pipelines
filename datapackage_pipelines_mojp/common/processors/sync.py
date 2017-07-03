@@ -19,7 +19,7 @@ DBS_DOCS_TABLE_SCHEMA = {"fields": [{"name": "source", "type": "string"},
                                         "description": COLLECTION_FIELD_DESCRIPTION},
                                     {"name": "source_doc", "type": "object"},
                                     {"name": "title", "type": "object",
-                                     "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
+                                    "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
                                     {"name": "title_he", "type": "string"},
                                     {"name": "title_en", "type": "string"},
                                     {"name": "content_html", "type": "object",
@@ -35,11 +35,13 @@ DBS_DOCS_SYNC_LOG_TABLE_SCHAME = {"fields": [{"name": "source", "type": "string"
                                              {'name': 'id', 'type': 'string'},
                                              {"name": "version", "type": "string",
                                               "description": "source dependant field, used by sync process to detect document updates"},
-                                             {"name": "collection", "type": "string", "description": COLLECTION_FIELD_DESCRIPTION},
+                                             {"name": "collection", "type": "string",
+                                                 "description": COLLECTION_FIELD_DESCRIPTION},
                                              {"name": "sync_msg", "type": "string"}]}
 
 INPUT_RESOURCE_NAME = "dbs_docs"
 OUTPUT_RESOURCE_NAME = "dbs_docs_sync_log"
+
 
 class CommonSyncProcessor(FilterResourcesProcessor):
 
@@ -57,7 +59,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _add_doc(self, new_doc):
         with temp_loglevel(logging.ERROR):
-            self._es.index(index=self._idx, doc_type=self._get_settings("MOJP_ELASTICSEARCH_DOCTYPE"), body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
+            self._es.index(index=self._idx, doc_type=self._get_settings(
+                "MOJP_ELASTICSEARCH_DOCTYPE"), body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
         return {"source": new_doc["source"], "id": new_doc["source_id"], "version": new_doc["version"],
                 "collection": new_doc["collection"], "sync_msg": "added to ES"}
 
@@ -103,16 +106,26 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                         for lang, value in row[lang_field].items():
                             if lang in iso639.languages.part1:
                                 new_doc["{}_{}".format(
-                                    lang_field, lang)] = value    
-                                new_doc["title_lc"] = {"title_{}_lc".format(lang): title.lower() for lang, title in row["title"].items()}
+                                    lang_field, lang)] = value
+                                new_doc["title_lc"] = {"title_{}_lc".format(lang): "{}".format(
+                                    title.lower()) for lang, title in row["title"].items()}
+                                for k, v in new_doc["title_lc"].items():
+                                    new_doc[k] = v
+                                del new_doc["title_lc"]
                             else:
                                 raise Exception(
                                     "language identifier not according to iso639 standard: {}".format(lang))
                     # delete the combined json lang field from the new_doc
                     del new_doc[lang_field]
-                # add lower case titles
-                new_doc["title_en_lc"] = new_doc["title_en"].lower()
-                new_doc["title_he_lc"] = new_doc["title_he"].lower()
+                # add en/he lower case titles
+                try:
+                    new_doc["title_en_lc"] = new_doc["title_en"].lower()
+                except AttributeError:
+                    new_doc["title_en_lc"] = ""
+                try:
+                    new_doc["title_he_lc"] = new_doc["title_he"].lower()
+                except AttributeError:
+                    new_doc["title_he_lc"] = ""
                 # ensure collection attribute is correct
                 if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
                     new_doc["collection"] = COLLECTION_UNKNOWN

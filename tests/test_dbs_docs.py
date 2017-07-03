@@ -53,7 +53,7 @@ def test_update():
     assert next(sync_log_resource) == sync_log(
         version="one", sync_msg="added to ES")
     assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", title_en="Doc_title", title_en_lc="doc_title", title_he="בדיקה ABC",
-                                                             title_he_lc="בדיקה abc", title_el="ElElEl", title_es="FOOBAR", title_lc={"title_el_lc": "elelel", "title_es_lc": "foobar"})
+                                                             title_he_lc="בדיקה abc", title_el="ElElEl", title_es="FOOBAR", title_el_lc="elelel", title_es_lc="foobar")
     # now, update the item in the mock data, but don't change the version
     sync_log_resource = when_running_sync_processor_on_mock_data(
         mock_data(version="one", title_en="new_doc_title"), refresh_elasticsearch=es)
