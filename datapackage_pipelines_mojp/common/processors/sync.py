@@ -107,25 +107,16 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                             if lang in iso639.languages.part1:
                                 new_doc["{}_{}".format(
                                     lang_field, lang)] = value
-                                new_doc["title_lc"] = {"title_{}_lc".format(lang): "{}".format(
-                                    title.lower()) for lang, title in row["title"].items()}
-                                for k, v in new_doc["title_lc"].items():
-                                    new_doc[k] = v
-                                del new_doc["title_lc"]
                             else:
                                 raise Exception(
                                     "language identifier not according to iso639 standard: {}".format(lang))
                     # delete the combined json lang field from the new_doc
                     del new_doc[lang_field]
-                # add en/he lower case titles
-                try:
-                    new_doc["title_en_lc"] = new_doc["title_en"].lower()
-                except AttributeError:
-                    new_doc["title_en_lc"] = ""
-                try:
-                    new_doc["title_he_lc"] = new_doc["title_he"].lower()
-                except AttributeError:
-                    new_doc["title_he_lc"] = ""
+                # lower-case title
+                for lang in iso639.languages.part1:
+                    if "title_{}".format(lang) in new_doc:
+                        title = new_doc["title_{}".format(lang)]
+                        new_doc["title_{}_lc"] = title.lower() if title is not None else ""
                 # ensure collection attribute is correct
                 if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
                     new_doc["collection"] = COLLECTION_UNKNOWN
