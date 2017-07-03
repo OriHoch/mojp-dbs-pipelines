@@ -1,4 +1,6 @@
-.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop
+.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop deploy
+
+DEPLOY_BRANCH ?= master
 
 install:
 	pip install --upgrade pip setuptools
@@ -39,3 +41,8 @@ docker-clean-start:
 
 docker-stop:
 	docker-compose stop
+
+deploy:
+	git pull origin $(DEPLOY_BRANCH)
+	make docker-build
+	make docker-start
