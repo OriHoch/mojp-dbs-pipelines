@@ -116,7 +116,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 for lang in iso639.languages.part1:
                     if "title_{}".format(lang) in new_doc:
                         title = new_doc["title_{}".format(lang)]
-                        new_doc["title_{}_lc"] = title.lower() if title is not None else ""
+                        new_doc["title_{}_lc".format(lang)] = title.lower() if title is not None else ""
                 # ensure collection attribute is correct
                 if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
                     new_doc["collection"] = COLLECTION_UNKNOWN
