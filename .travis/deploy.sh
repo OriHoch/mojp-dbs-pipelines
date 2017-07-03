@@ -12,6 +12,6 @@ else
 fi
 
 echo "deploying..."
-ssh -i ./deploy-mojp-dbs-pipelines.id_rsa bhs@devapi.dbs.bh.org.il
+ssh -i ./deploy-mojp-dbs-pipelines.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no bhs@devapi.dbs.bh.org.il
 
 echo "OK"
