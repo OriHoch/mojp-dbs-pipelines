@@ -11,6 +11,9 @@ else
     echo "deploy key already exists"
 fi
 
+# ssh requires private key to have limited permissions
+chmod 400 ./deploy-mojp-dbs-pipelines.id_rsa
+
 echo "deploying..."
 ssh -i ./deploy-mojp-dbs-pipelines.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no bhs@devapi.dbs.bh.org.il
 
