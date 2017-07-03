@@ -48,24 +48,43 @@ def test_update():
                                       "id": "666", "collection": "places"}, **kwargs)
     # do initial sync for a specific doc to ES
     es = given_empty_elasticsearch_instance()
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(
-        version="one", title_en="Doc_title", title_he="בדיקה ABC", title={"el": "ElElEl", "es": "FOOBAR"}), refresh_elasticsearch=es)
-    assert next(sync_log_resource) == sync_log(
-        version="one", sync_msg="added to ES")
-    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", title_en="Doc_title", title_en_lc="doc_title", title_he="בדיקה ABC",
-                                                             title_he_lc="בדיקה abc", title_el="ElElEl", title_es="FOOBAR", title_el_lc="elelel", title_es_lc="foobar")
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", 
+                                                                        title_en="Doc_title"),
+                                                                        refresh_elasticsearch=es)
+    assert next(sync_log_resource) == sync_log(version="one", sync_msg="added to ES")
+    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", 
+                                                        title_en="Doc_title", 
+                                                        title_en_lc="doc_title")
     # now, update the item in the mock data, but don't change the version
-    sync_log_resource = when_running_sync_processor_on_mock_data(
-        mock_data(version="one", title_en="new_doc_title"), refresh_elasticsearch=es)
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", 
+                                                                        title_en="new_doc_title"), 
+                                                                        refresh_elasticsearch=es)
     # no update - because we rely on version to determine if to update or not
     assert next(sync_log_resource) == sync_log(
         version="one", sync_msg="no update needed")
     # now, update with a change in version
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="two", title_en="new_doc_title"),
-                                                                 refresh_elasticsearch=es)
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="two", 
+                                                                    title_en="Doc_title", 
+                                                                    title_he="בדיקה ABC", 
+                                                                    title={"el": "ElElEl", "es": "FOOBAR"}), 
+                                                                    refresh_elasticsearch=es)
+    assert next(sync_log_resource) == sync_log(version="two", 
+                                        sync_msg='updated doc in ES (old version = "one")')
+    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="two", 
+                                                        title_en="Doc_title", 
+                                                        title_en_lc="doc_title", 
+                                                        title_he="בדיקה ABC",
+                                                        title_he_lc="בדיקה abc", 
+                                                        title_el="ElElEl", 
+                                                        title_es="FOOBAR", 
+                                                        title_el_lc="elelel", 
+                                                        title_es_lc="foobar")
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="three", 
+                                                                        title_en="new_doc_title"),
+                                                                        refresh_elasticsearch=es)
     # item is updated in ES
-    assert next(sync_log_resource) == sync_log(version="two",
-                                               sync_msg='updated doc in ES (old version = "one")')
+    assert next(sync_log_resource) == sync_log(version="three",
+                                            sync_msg='updated doc in ES (old version = "two")')
 
 
 def test_doc_sync_to_es_with_real_clearmash_docs():
