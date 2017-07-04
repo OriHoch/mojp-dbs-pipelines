@@ -3,16 +3,20 @@ from datapackage_pipelines_mojp.clearmash.processors.download import ClearmashDo
 from datapackage_pipelines_mojp.clearmash.processors.convert import ClearmashConvertProcessor
 from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_TABLE_SCHEMA
 from .common import assert_processor, assert_conforms_to_dbs_schema, assert_conforms_to_schema
-from datapackage_pipelines_mojp.clearmash.constants import (CLEARMASH_SOURCE_ID, DOWNLOAD_TABLE_SCHEMA)
-from datapackage_pipelines_mojp.common.constants import COLLECTION_FAMILY_NAMES
+from datapackage_pipelines_mojp.clearmash.constants import (CLEARMASH_SOURCE_ID, DOWNLOAD_TABLE_SCHEMA,
+                                                            WEB_CONTENT_FOLDER_ID_Place)
+from datapackage_pipelines_mojp.common.constants import COLLECTION_FAMILY_NAMES, COLLECTION_PLACES
 
 
 ## setup / utility functions
 
 
-def given_mock_clearmash_downloaded_doc():
+def given_mock_clearmash_downloaded_doc(override_parameters=None):
     settings = type("MockSettings", (object,), {})
-    datapackage, resources = ClearmashDownloadProcessor(parameters={"mock": True},
+    parameters = {"mock": True}
+    if override_parameters:
+        parameters.update(override_parameters)
+    datapackage, resources = ClearmashDownloadProcessor(parameters=parameters,
                                                         datapackage={"resources": []},
                                                         resources=[],
                                                         settings=settings).spew()
@@ -35,17 +39,20 @@ def given_mock_clearmash_dbs_doc():
 ## custom assertions
 
 
-def assert_mock_clearmash_downloaded_doc(downloaded_doc):
+def assert_mock_clearmash_downloaded_doc(downloaded_doc,
+                                         expected_base_id=45,
+                                         expected_template_changeset_id=135,
+                                         expected_collection=COLLECTION_FAMILY_NAMES):
     assert_conforms_to_schema(DOWNLOAD_TABLE_SCHEMA, downloaded_doc)
     assert list(downloaded_doc.keys()) == ['document_id', 'item_id', 'item_url', 'template_changeset_id',
                                            'template_id', 'metadata', 'parsed_doc', 'changeset', "collection"]
-    assert downloaded_doc["document_id"] == "foobarbaz-4501"
-    assert downloaded_doc["item_id"] == 4501
-    assert downloaded_doc["item_url"] == "http://foo.bar.baz/4501"
-    assert downloaded_doc["template_changeset_id"] == 135
-    assert downloaded_doc["template_id"] == "fake-template-45"
+    assert downloaded_doc["document_id"] == "foobarbaz-{}01".format(expected_base_id)
+    assert downloaded_doc["item_id"] == expected_base_id*100+1
+    assert downloaded_doc["item_url"] == "http://foo.bar.baz/{}01".format(expected_base_id)
+    assert downloaded_doc["template_changeset_id"] == expected_template_changeset_id
+    assert downloaded_doc["template_id"] == "fake-template-{}".format(expected_base_id)
     assert downloaded_doc["changeset"] == 707207
-    assert downloaded_doc["collection"] == COLLECTION_FAMILY_NAMES
+    assert downloaded_doc["collection"] == expected_collection
     metadata = downloaded_doc["metadata"]
     assert list(metadata.keys()) == ['ActiveLock', 'CreatorUserId', 'EntityTypeId', 'IsArchived', 'IsBookmarked',
                                      'IsLiked', 'LikesCount']
@@ -130,3 +137,8 @@ def test_download():
 def test_convert_to_dbs_documents():
     doc = given_mock_clearmash_dbs_doc()
     assert_mock_clearmash_dbs_doc(doc)
+
+def test_download_folder_id_param():
+    datapackage, doc = given_mock_clearmash_downloaded_doc(override_parameters={"folder_id": WEB_CONTENT_FOLDER_ID_Place})
+    assert_mock_clearmash_downloaded_doc(doc, expected_base_id=43, expected_template_changeset_id=129,
+                                         expected_collection=COLLECTION_PLACES)
