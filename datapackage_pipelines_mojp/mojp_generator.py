@@ -21,13 +21,15 @@ class MojpGenerator(GeneratorBase):
             if dataSource == "clearmash":
                 # for clearmash we split it into multiple pipelines for each content folder
                 for folder_id, folder in CLEARMASH_CONTENT_FOLDERS.items():
-                    name = "{}_{}".format(dataSource, folder["collection"])
+                    name = "{}_{}".format(dataSource, folder["collection"]).lower()
                     yield name, cls.get_pipeline_details(name, dataSource=dataSource, download_parameters={"folder_id": folder_id})
             else:
                 yield dataSource, cls.get_pipeline_details(dataSource)
 
     @classmethod
     def get_pipeline_details(cls, name, dataSource=None, download_parameters=None, convert_parameters=None, sync_parameters=None):
+        if name.lower() != name:
+            raise Exception("name must be lower-case!")
         if dataSource is None:
             dataSource = name
         return {"title": name,
