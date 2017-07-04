@@ -3,6 +3,7 @@ import os
 
 from datapackage_pipelines.generators.generator_base import GeneratorBase
 from datapackage_pipelines.generators.utilities import steps
+from datapackage_pipelines_mojp.clearmash.constants import CONTENT_FOLDERS as CLEARMASH_CONTENT_FOLDERS
 
 from .settings import MOJP_ONLY_DOWNLOAD, MOJP_MOCK
 
@@ -17,35 +18,46 @@ class MojpGenerator(GeneratorBase):
     @classmethod
     def generate_pipeline(cls, source):
         for dataSource in source["data-sources"]:
-            yield dataSource, cls.get_pipeline_details(dataSource)
+            if dataSource == "clearmash":
+                # for clearmash we split it into multiple pipelines for each content folder
+                for folder_id, folder in CLEARMASH_CONTENT_FOLDERS.items():
+                    name = "{}_{}".format(dataSource, folder["collection"])
+                    yield name, cls.get_pipeline_details(name, dataSource=dataSource, download_parameters={"folder_id": folder_id})
+            else:
+                yield dataSource, cls.get_pipeline_details(dataSource)
 
     @classmethod
-    def get_pipeline_details(cls, name):
-        return {"title": "Download, Convert and Sync documents from {} to MoJP Databases".format(name),
-                "pipeline": steps(*cls.get_steps(name))}
+    def get_pipeline_details(cls, name, dataSource=None, download_parameters=None, convert_parameters=None, sync_parameters=None):
+        if dataSource is None:
+            dataSource = name
+        return {"title": name,
+                "pipeline": steps(*cls.get_steps(name, dataSource, download_parameters, convert_parameters, sync_parameters))}
 
     @classmethod
-    def get_steps(cls, name):
+    def get_steps(cls, name, dataSource, download_parameters=None, convert_parameters=None, sync_parameters=None):
         steps = [("add_metadata", cls.get_metadata(name))]
-        for step in ["download", "convert", "sync"]:
-            if not cls.skip_step(name, step):
-                steps.append(cls.get_step(name, step))
+        for step, parameters in {"download": download_parameters,
+                                 "convert": convert_parameters,
+                                 "sync": sync_parameters}.items():
+            if not cls.skip_step(name, dataSource, step, parameters):
+                steps.append(cls.get_step(name, dataSource, step, parameters))
         steps.append(("dump.to_path", {"out-path": cls.get_outpath(name)}))
         return steps
 
     @classmethod
-    def get_step(cls, name, step):
-        module = "datapackage_pipelines_mojp.{}.processors".format("common" if step == "sync" else name)
-        return ("{}.{}".format(module, step), cls.get_step_params(name, step))
+    def get_step(cls, name, dataSource, step, parameters=None):
+        module = "datapackage_pipelines_mojp.{}.processors".format("common" if step == "sync" else dataSource)
+        return ("{}.{}".format(module, step), cls.get_step_params(name, dataSource, step, parameters))
 
     @classmethod
-    def get_step_params(cls, name, step):
-        return {
-            "mock": MOJP_MOCK
-        }
+    def get_step_params(cls, name, dataSource, step, override_parameters=None):
+        parameters = {"mock": MOJP_MOCK}
+        if override_parameters is not None:
+            parameters.update(override_parameters)
+        return parameters
 
     @classmethod
-    def skip_step(cls, name, step):
+    def skip_step(cls, name, dataSource, step, parameters=None):
         if MOJP_ONLY_DOWNLOAD:
             return step != "download"
         else:
