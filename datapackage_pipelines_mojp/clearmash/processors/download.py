@@ -22,11 +22,12 @@ class ClearmashDownloadProcessor(BaseDownloadProcessor):
         if not clearmash_api:
             clearmash_api = self._get_clearmash_api()
         for folder_id, folder in CONTENT_FOLDERS.items():
-            self.item_ids_buffer = []
-            for item in clearmash_api.get_web_document_system_folder(folder_id)["Items"]:
-                self.item_ids_buffer.append(item["Id"])
-                yield from self._handle_item_ids_buffer(folder, clearmash_api)
-            yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
+            if self._parameters.get("folder_id", "") == "" or self._parameters["folder_id"] == folder_id:
+                self.item_ids_buffer = []
+                for item in clearmash_api.get_web_document_system_folder(folder_id)["Items"]:
+                    self.item_ids_buffer.append(item["Id"])
+                    yield from self._handle_item_ids_buffer(folder, clearmash_api)
+                yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
 
     def _mock_download(self):
         yield from self._download(clearmash_api=self._get_mock_clearmash_api())
