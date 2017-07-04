@@ -22,6 +22,10 @@ Tests are executed by running `$ make test`, but can also be executed by running
        or
    * `$ py.test tests/test_clearmash_api.py` (**example**) to run the specific single test 'test_clearmash_api.py'.
 
+## Configuration
+
+Some pipelines have settings, we use .env file for that, just copy .env.example into .env and modify according to your needs
+
 ## See Also
 
 To run the full datapackage-pipelines environment you should use Docker, see [README-DOCKER](README-DOCKER.md) for more details.
