@@ -18,3 +18,7 @@ services:
       - "CLEARMASH_CLIENT_TOKEN="
       - "MOJP_ELASTICSEARCH_DB="
       - "MOJP_ELASTICSEARCH_INDEX="
+    # if you want to use a different port then the default 5000
+    # in this example it will be available on localhost:55000
+    # ports:
+    #   - "55000:5000"
