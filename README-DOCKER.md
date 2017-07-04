@@ -4,7 +4,7 @@ Docker is used to run all the services and apps in a consistent way for both dev
 
 **For most changes you can just run the code directly / use the unit tests - no need to run the Docker**
 
-### Installation on Ubuntu 17.04
+### Installation (commands are for Ubuntu 17.04)
 
 * [Install Docker](https://docs.docker.com/engine/installation/) (tested with version 17.03)
   * `sudo apt-get remove docker docker-engine docker-compose docker.io`
@@ -59,3 +59,16 @@ Now, every change in the code is reflected inside docker
 Restart the app with `make docker-restart`
 
 for a full rebuild and restart run: `make docker-clean-start`
+
+### debugging
+
+```
+docker exec -it mojpdbspipelines_app_1 sh
+dpp
+```
+
+You can also copy the data directory from inside docker - to get the sync log
+
+```
+docker cp mojpdbspipelines_app_1:/mojp/data mojpdbspipelines_data
+```
