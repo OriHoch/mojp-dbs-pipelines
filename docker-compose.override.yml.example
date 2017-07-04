@@ -3,6 +3,12 @@
 version: '3'
 
 services:
+  # if you want to connect to the redis instance (which in most cases you won't need to),
+  # you need to expose the ports, then you can access from the host using e.g. `redis-cli -p 56379`
+  # redis:
+  #   ports:
+  #     #   host:docker
+  #     - "56379:63679"
   app:
     # for development - you can mount the host directory inside the docker
     # that way code changes are reflected without having to rebuild
