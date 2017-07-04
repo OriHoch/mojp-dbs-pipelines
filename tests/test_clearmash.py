@@ -139,6 +139,13 @@ def test_convert_to_dbs_documents():
     assert_mock_clearmash_dbs_doc(doc)
 
 def test_download_folder_id_param():
+    # without folder_id param - first item is a family name
+    datapackage, doc = given_mock_clearmash_downloaded_doc()
+    assert_mock_clearmash_downloaded_doc(doc,
+                                         expected_collection=COLLECTION_FAMILY_NAMES)
+    # with folder_id param of place - first item is a place
     datapackage, doc = given_mock_clearmash_downloaded_doc(override_parameters={"folder_id": WEB_CONTENT_FOLDER_ID_Place})
-    assert_mock_clearmash_downloaded_doc(doc, expected_base_id=43, expected_template_changeset_id=129,
+    assert_mock_clearmash_downloaded_doc(doc,
+                                         expected_base_id=43,
+                                         expected_template_changeset_id=129,
                                          expected_collection=COLLECTION_PLACES)
