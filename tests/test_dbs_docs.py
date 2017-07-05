@@ -21,7 +21,8 @@ def test_sync_with_invalid_collection():
                                        "collection": "unknown", "sync_msg": "added to ES"}
     es_docs = (es_doc(es, "clearmash", id) for id in ["1", "2"])
     doc = deepcopy(EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC[0])
-    doc.update(collection="unknown")
+    doc.update(collection="unknown",
+               slug_el="clearmash_greek-title-ελληνικά-elliniká")
     assert next(es_docs) == doc
 
 
@@ -48,40 +49,46 @@ def test_update():
                                       "id": "666", "collection": "places"}, **kwargs)
     # do initial sync for a specific doc to ES
     es = given_empty_elasticsearch_instance()
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", 
-                                                                        title_en="Doc_title"),
-                                                                        refresh_elasticsearch=es)
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one",
+                                                                           title_en="Doc_title"),
+                                                                 refresh_elasticsearch=es)
     assert next(sync_log_resource) == sync_log(version="one", sync_msg="added to ES")
-    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one", 
-                                                        title_en="Doc_title", 
-                                                        title_en_lc="doc_title")
+    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one",
+                                                             title_en="Doc_title",
+                                                             title_en_lc="doc_title",
+                                                             slug_en="place_doc-title",
+                                                             slug_el="clearmash_place_greek-title-ελληνικά-elliniká")
     # now, update the item in the mock data, but don't change the version
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one", 
-                                                                        title_en="new_doc_title"), 
-                                                                        refresh_elasticsearch=es)
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one",
+                                                                           title_en="new_doc_title"),
+                                                                 refresh_elasticsearch=es)
     # no update - because we rely on version to determine if to update or not
     assert next(sync_log_resource) == sync_log(
         version="one", sync_msg="no update needed")
     # now, update with a change in version
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="two", 
-                                                                    title_en="Doc_title", 
-                                                                    title_he="בדיקה ABC", 
-                                                                    title={"el": "ElElEl", "es": "FOOBAR"}), 
-                                                                    refresh_elasticsearch=es)
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="two",
+                                                                           title_en="Doc_title",
+                                                                           title_he="בדיקה ABC",
+                                                                           title={"el": "ElElEl", "es": "FOOBAR"}),
+                                                                 refresh_elasticsearch=es)
     assert next(sync_log_resource) == sync_log(version="two", 
                                         sync_msg='updated doc in ES (old version = "one")')
-    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="two", 
-                                                        title_en="Doc_title", 
-                                                        title_en_lc="doc_title", 
-                                                        title_he="בדיקה ABC",
-                                                        title_he_lc="בדיקה abc", 
-                                                        title_el="ElElEl", 
-                                                        title_es="FOOBAR", 
-                                                        title_el_lc="elelel", 
-                                                        title_es_lc="foobar")
-    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="three", 
-                                                                        title_en="new_doc_title"),
-                                                                        refresh_elasticsearch=es)
+    assert es_doc(es, "clearmash", "666") == expected_es_doc(version="two",
+                                                             title_en="Doc_title",
+                                                             slug_en="place_doc-title",
+                                                             title_en_lc="doc_title",
+                                                             title_he="בדיקה ABC",
+                                                             slug_he="מקום_בדיקה-abc",
+                                                             title_he_lc="בדיקה abc",
+                                                             title_el="ElElEl",
+                                                             slug_el=["clearmash_place_elelel", "clearmash_place_greek-title-ελληνικά-elliniká"],
+                                                             title_es="FOOBAR",
+                                                             slug_es="clearmash_place_foobar",
+                                                             title_el_lc="elelel",
+                                                             title_es_lc="foobar")
+    sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="three",
+                                                                           title_en="new_doc_title"),
+                                                                 refresh_elasticsearch=es)
     # item is updated in ES
     assert next(sync_log_resource) == sync_log(version="three",
                                             sync_msg='updated doc in ES (old version = "two")')
@@ -89,6 +96,27 @@ def test_update():
 
 def test_doc_sync_to_es_with_real_clearmash_docs():
     es = given_empty_elasticsearch_instance()
-    sync_log = when_running_sync_processor_on_mock_data(
-        [FAMILY_NAMES_BEN_AMARA], refresh_elasticsearch=es)
-    assert next(sync_log)["sync_msg"] == "added to ES"
+    sync_log = list(when_running_sync_processor_on_mock_data([FAMILY_NAMES_BEN_AMARA], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == "added to ES"
+
+
+def test_slugs():
+    es = given_empty_elasticsearch_instance()
+    sync_log = list(when_running_sync_processor_on_mock_data([FAMILY_NAMES_BEN_AMARA], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] ==  "added to ES"
+    doc = es_doc(es, "clearmash", "115306")
+    assert doc["slug_he"] == u"שםמשפחה_\u05d1\u05df-\u05e2\u05de\u05e8\u05d4"
+    assert doc["slug_en"] == u"familyname_ben-amara"
+    updated_doc = deepcopy(FAMILY_NAMES_BEN_AMARA)
+    del updated_doc["title_en"]
+    del updated_doc["title_he"]
+    updated_doc["version"] = "test_slugs_2"
+    sync_log = list(when_running_sync_processor_on_mock_data([updated_doc], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == 'updated doc in ES (old version = "2991606-f91ea044052746a2903d6ee60d9b374b")'
+    doc = es_doc(es, "clearmash", "115306")
+    slugs = [(k,v) for k,v in doc.items() if k.startswith("slug_")]
+    assert slugs == [('slug_en', ['familyname_115306', 'familyname_ben-amara']),
+                     ('slug_he', 'שםמשפחה_בן-עמרה')]

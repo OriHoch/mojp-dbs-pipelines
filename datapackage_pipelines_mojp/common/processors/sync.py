@@ -2,10 +2,12 @@ import json
 from elasticsearch import Elasticsearch, NotFoundError
 from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
 from datapackage_pipelines_mojp.settings import temp_loglevel, logging
-from datapackage_pipelines_mojp.common.constants import ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN
+from datapackage_pipelines_mojp.common.constants import (ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN,
+                                                         SLUG_LANGUAGES_MAP)
 import iso639
 from copy import deepcopy
 import logging
+from slugify import Slugify
 
 COLLECTION_FIELD_DESCRIPTION = "standard collection identifier (e.g. places / familyNames etc..). " \
                                "must be related to one of the COLLECTION_? constants"
@@ -66,11 +68,26 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _update_doc(self, new_doc, old_doc):
         if old_doc["version"] != new_doc["version"]:
+            for lang in iso639.languages.part1:
+                old_slug = old_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in old_doc else None
+                if old_slug:
+                    new_slug = new_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in new_doc else None
+                    if new_slug:
+                        new_slug = [new_slug] if isinstance(new_slug, str) else new_slug
+                        old_slug = [old_slug] if isinstance(old_slug, str) else old_slug
+                        for s in old_slug:
+                            if s not in new_slug:
+                                new_slug.append(s)
+                        if len(new_slug) == 1:
+                            new_slug = new_slug[0]
+                        new_doc["slug_{}".format(lang)] = new_slug
+                    else:
+                        new_doc["slug_{}".format(lang)] = old_slug
             with temp_loglevel(logging.ERROR):
-                self._es.update(index=self._idx, doc_type="common",
+                self._es.index(index=self._idx, doc_type="common",
                                 id="{}_{}".format(
                                     new_doc["source"], new_doc["source_id"]),
-                                body={"doc": new_doc})
+                                body=new_doc)
             return {"source": new_doc["source"], "id": new_doc["source_id"], "version": new_doc["version"],
                     "collection": new_doc["collection"],
                     "sync_msg": "updated doc in ES (old version = {})".format(json.dumps(old_doc["version"]))}
@@ -78,6 +95,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             return {"source": new_doc["source"], "id": new_doc["source_id"], "version": new_doc["version"],
                     "collection": new_doc["collection"],
                     "sync_msg": "no update needed"}
+
+
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
@@ -91,35 +110,11 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             try:
                 row = deepcopy(original_row)
                 source_doc = row.pop("source_doc")
-                # the source doc is used as the base for the final es doc
-                # but, we make sure all attributes are strings to ensure we don't have wierd values there (we have)
-                new_doc = {}
-                for k, v in source_doc.items():
-                    new_doc[k] = str(v)
-                # then, we override with the other row values
-                new_doc.update(row)
-                # rename the id field
-                new_doc["source_id"] = str(new_doc.pop("id"))
-                # populate the language fields
-                for lang_field in ["title", "content_html"]:
-                    if row[lang_field]:
-                        for lang, value in row[lang_field].items():
-                            if lang in iso639.languages.part1:
-                                new_doc["{}_{}".format(
-                                    lang_field, lang)] = value
-                            else:
-                                raise Exception(
-                                    "language identifier not according to iso639 standard: {}".format(lang))
-                    # delete the combined json lang field from the new_doc
-                    del new_doc[lang_field]
-                # lower-case title
-                for lang in iso639.languages.part1:
-                    if "title_{}".format(lang) in new_doc:
-                        title = new_doc["title_{}".format(lang)]
-                        new_doc["title_{}_lc".format(lang)] = title.lower() if title is not None else ""
-                # ensure collection attribute is correct
-                if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
-                    new_doc["collection"] = COLLECTION_UNKNOWN
+                new_doc = self._initialize_new_doc(row, source_doc)
+                self._populate_language_fields(new_doc, row)
+                self._add_title_related_fields(new_doc)
+                self._validate_collection(new_doc)
+                self._validate_slugs(new_doc)
                 with temp_loglevel(logging.ERROR):
                     try:
                         old_doc = self._es.get(index=self._idx, id="{}_{}".format(
@@ -137,6 +132,70 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                                                    original_row))
                 raise
         return row
+
+    def _validate_collection(self, new_doc):
+        if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
+            new_doc["collection"] = COLLECTION_UNKNOWN
+
+    def _initialize_new_doc(self, row, source_doc):
+        # the source doc is used as the base for the final es doc
+        # but, we make sure all attributes are strings to ensure we don't have wierd values there (we have)
+        new_doc = {}
+        for k, v in source_doc.items():
+            new_doc[k] = str(v)
+        # then, we override with the other row values
+        new_doc.update(row)
+        # rename the id field
+        new_doc["source_id"] = str(new_doc.pop("id"))
+        return new_doc
+
+    def _add_slug(self, new_doc, title, lang):
+        if title:
+            collection = new_doc.get("collection", "")
+            slug_parts = []
+            if collection in SLUG_LANGUAGES_MAP:
+                if lang in SLUG_LANGUAGES_MAP[collection]:
+                    slug_collection = SLUG_LANGUAGES_MAP[collection][lang]
+                else:
+                    slug_collection = SLUG_LANGUAGES_MAP[collection]["en"]
+            else:
+                slug_collection = None
+            if new_doc["source"] != "clearmash" or slug_collection is None or lang not in ["en", "he"]:
+                slug_parts.append(new_doc["source"])
+            if slug_collection:
+                slug_parts.append(slug_collection)
+            slug_parts.append(title.lower())
+            slugify = Slugify(translate=None, safe_chars='_')
+            slug = slugify(u'_'.join([p.replace("_", "-") for p in slug_parts]))
+            new_doc["slug_{}".format(lang)] = slug
+
+    def _validate_slugs(self, new_doc):
+        # ensure every doc has at least 1 slug
+        if len([True for lang in iso639.languages.part1
+                if "slug_{}".format(lang) in new_doc]) == 0:
+            self._add_slug(new_doc, new_doc["source_id"], "en")
+
+    def _add_title_related_fields(self, new_doc):
+        for lang in iso639.languages.part1:
+            if "title_{}".format(lang) in new_doc:
+                title = new_doc["title_{}".format(lang)]
+                # lower-case title
+                new_doc["title_{}_lc".format(lang)] = title.lower() if title is not None else ""
+                # slug
+                self._add_slug(new_doc, title, lang)
+
+    def _populate_language_fields(self, new_doc, row):
+        for lang_field in ["title", "content_html"]:
+            if row[lang_field]:
+                for lang, value in row[lang_field].items():
+                    if lang in iso639.languages.part1:
+                        new_doc["{}_{}".format(
+                            lang_field, lang)] = value
+                    else:
+                        raise Exception(
+                            "language identifier not according to iso639 standard: {}".format(lang))
+            # delete the combined json lang field from the new_doc
+            del new_doc[lang_field]
 
 
 if __name__ == '__main__':

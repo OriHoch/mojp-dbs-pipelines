@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 import json, logging
 from datapackage_pipelines_mojp.common.constants import COLLECTION_PLACES, COLLECTION_FAMILY_NAMES
 from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
-
+from copy import deepcopy
 
 ROOT_PATH = os.path.join(os.path.dirname(__file__), '..')
 ELASTICSEARCH_TESTS_INDEX = "mojptests"
@@ -31,6 +31,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "source_id": "1",
                                          "collection": "places",
                                          "title_el": "Greek title ελληνικά, elliniká",
+                                         "slug_el": "clearmash_place_greek-title-ελληνικά-elliniká",
                                          "title_el_lc": "greek title ελληνικά, elliniká",
                                          "title_he": "",
                                          "title_en": "",
@@ -48,6 +49,7 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "source": "clearmash",
                                          "source_id": "2",
                                          "collection": "familyNames",
+                                         "slug_en": "familyname_2",
                                          "title_he": "",
                                          "title_en": "",
                                          "title_he_lc": "",
@@ -118,6 +120,7 @@ def given_empty_elasticsearch_instance(host="localhost:9200", index=ELASTICSEARC
     return es
 
 def when_running_sync_processor_on_mock_data(mock_data=MOCK_DATA_FOR_SYNC, refresh_elasticsearch=None):
+    mock_data = [deepcopy(o) for o in mock_data]
     resource = next(assert_processor(
         CommonSyncProcessor,
         mock_settings=type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
