@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
 from datapackage_pipelines_mojp.settings import temp_loglevel, logging
 from datapackage_pipelines_mojp.common.constants import (ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN,
-                                                         SLUG_LANGUAGES_MAP)
+                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS)
 import iso639
 from copy import deepcopy
 import logging
@@ -200,6 +200,12 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 new_doc["title_{}_lc".format(lang)] = title.lower() if title is not None else ""
                 # slug
                 self._add_slug(new_doc, title, lang)
+        # ensure there is a value for all suggest supported langs
+        for lang in SUPPORTED_SUGGEST_LANGS:
+            val = new_doc.get("title_{}".format(lang), "")
+            if val is None or len(val) < 1:
+                val = "_"
+            new_doc["title_{}_suggest".format(lang)] = val
 
     def _populate_language_fields(self, new_doc, row):
         for lang_field in ["title", "content_html"]:
