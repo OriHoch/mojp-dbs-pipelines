@@ -175,9 +175,6 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             slugify = Slugify(translate=None, safe_chars='_')
             slug = slugify(u'_'.join([p.replace("_", "-") for p in slug_parts]))
             new_doc["slug_{}".format(lang)] = slug
-            if "slugs" not in new_doc:
-                new_doc["slugs"] = []
-            new_doc["slugs"].append(slug)
 
     def _validate_slugs(self, new_doc):
         # all unique slugs for all languages
