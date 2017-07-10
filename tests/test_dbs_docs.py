@@ -56,6 +56,7 @@ def test_update():
     assert next(sync_log_resource) == sync_log(version="one", sync_msg="added to ES")
     assert es_doc(es, "clearmash", "666") == expected_es_doc(version="one",
                                                              title_en="Doc_title",
+                                                             title_en_suggest="Doc_title",
                                                              title_en_lc="doc_title",
                                                              slug_en="place_doc-title",
                                                              slug_el="clearmash_place_greek-title-ελληνικά-elliniká",
@@ -77,9 +78,11 @@ def test_update():
                                         sync_msg='updated doc in ES (old version = "one")')
     assert es_doc(es, "clearmash", "666") == expected_es_doc(version="two",
                                                              title_en="Doc_title",
+                                                             title_en_suggest="Doc_title",
                                                              slug_en="place_doc-title",
                                                              title_en_lc="doc_title",
                                                              title_he="בדיקה ABC",
+                                                             title_he_suggest="בדיקה ABC",
                                                              slug_he="מקום_בדיקה-abc",
                                                              title_he_lc="בדיקה abc",
                                                              title_el="ElElEl",
