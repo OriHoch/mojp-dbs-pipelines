@@ -203,7 +203,9 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         # ensure there is a value for all suggest supported langs
         for lang in SUPPORTED_SUGGEST_LANGS:
             val = new_doc.get("title_{}".format(lang), "")
-            new_doc["title_{}_suggest".format(lang)] = "" if val is None else val
+            if val is None or len(val) < 1:
+                val = "_"
+            new_doc["title_{}_suggest".format(lang)] = val
 
     def _populate_language_fields(self, new_doc, row):
         for lang_field in ["title", "content_html"]:
