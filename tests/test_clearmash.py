@@ -149,3 +149,18 @@ def test_download_folder_id_param():
                                          expected_base_id=43,
                                          expected_template_changeset_id=129,
                                          expected_collection=COLLECTION_PLACES)
+
+def test_not_allowed_item_should_not_be_processed():
+    datapackage, downloaded_doc = given_mock_clearmash_downloaded_doc()
+    # fake a not allowed document
+    downloaded_doc["parsed_doc"]['_c6_beit_hatfutsot_bh_base_template_display_status'][0]["en"] = "invalid"
+    downloaded_doc["parsed_doc"]['_c6_beit_hatfutsot_bh_base_template_rights'][0]["en"] = "wrong"
+    downloaded_doc["parsed_doc"]['_c6_beit_hatfutsot_bh_base_template_working_status'][0]["en"] = "not good"
+    resources = assert_processor(ClearmashConvertProcessor,
+                                 parameters={}, datapackage=datapackage, resources=[[downloaded_doc]],
+                                 expected_datapackage={"resources": [{"name": "dbs_docs",
+                                                                      "path": "dbs_docs.csv",
+                                                                      "schema": DBS_DOCS_TABLE_SCHEMA}]})
+    # doc should not be returned as it's not allowed
+    assert len(list(next(resources))) == 0
+

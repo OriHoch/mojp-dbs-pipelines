@@ -75,7 +75,7 @@ class FilterResourcesProcessor(BaseProcessor):
         for row in resource:
             yield self._filter_row(row, descriptor)
 
-    def _filter_row(self, row, resource_descirptor):
+    def _filter_row(self, row, resource_descriptor):
         return row
 
     def _process(self, datapackage, resources):
