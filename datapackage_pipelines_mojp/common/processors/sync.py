@@ -68,21 +68,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _update_doc(self, new_doc, old_doc):
         if old_doc["version"] != new_doc["version"]:
-            for lang in iso639.languages.part1:
-                old_slug = old_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in old_doc else None
-                if old_slug:
-                    new_slug = new_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in new_doc else None
-                    if new_slug:
-                        new_slug = [new_slug] if isinstance(new_slug, str) else new_slug
-                        old_slug = [old_slug] if isinstance(old_slug, str) else old_slug
-                        for s in old_slug:
-                            if s not in new_slug:
-                                new_slug.append(s)
-                        if len(new_slug) == 1:
-                            new_slug = new_slug[0]
-                        new_doc["slug_{}".format(lang)] = new_slug
-                    else:
-                        new_doc["slug_{}".format(lang)] = old_slug
+            self._update_doc_slugs(new_doc, old_doc)
             with temp_loglevel(logging.ERROR):
                 self._es.index(index=self._idx, doc_type="common",
                                 id="{}_{}".format(
@@ -96,7 +82,28 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                     "collection": new_doc["collection"],
                     "sync_msg": "no update needed"}
 
-
+    def _update_doc_slugs(self, new_doc, old_doc):
+        # aggregate the new and old doc slugs - so that we will never delete any existing slugs, only add new ones
+        for lang in iso639.languages.part1:
+            old_slug = old_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in old_doc else None
+            if old_slug:
+                new_slug = new_doc["slug_{}".format(lang)] if "slug_{}".format(lang) in new_doc else None
+                if new_slug:
+                    new_slug = [new_slug] if isinstance(new_slug, str) else new_slug
+                    old_slug = [old_slug] if isinstance(old_slug, str) else old_slug
+                    for s in old_slug:
+                        if s not in new_slug:
+                            new_slug.append(s)
+                    if len(new_slug) == 1:
+                        new_slug = new_slug[0]
+                    new_doc["slug_{}".format(lang)] = new_slug
+                else:
+                    new_doc["slug_{}".format(lang)] = old_slug
+        # aggregate the slugs field which contains slugs from all languages
+        if "slugs" in old_doc:
+            for slug in old_doc["slugs"]:
+                if slug not in new_doc["slugs"]:
+                    new_doc["slugs"].append(slug)
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
@@ -170,10 +177,20 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             new_doc["slug_{}".format(lang)] = slug
 
     def _validate_slugs(self, new_doc):
-        # ensure every doc has at least 1 slug
-        if len([True for lang in iso639.languages.part1
-                if "slug_{}".format(lang) in new_doc]) == 0:
+        # all unique slugs for all languages
+        slugs = []
+        for lang in iso639.languages.part1:
+            if "slug_{}".format(lang) in new_doc:
+                slug = new_doc["slug_{}".format(lang)]
+                if slug not in slugs:
+                    slugs.append(slug)
+        # ensure every doc has at least 1 slug (in any language)
+        if len(slugs) == 0:
+            # add english slug comprised of doc id
             self._add_slug(new_doc, new_doc["source_id"], "en")
+            slugs.append(new_doc["slug_en"])
+        # add the slugs attribute (needed for fetching item page based on slug)
+        new_doc["slugs"] = slugs
 
     def _add_title_related_fields(self, new_doc):
         for lang in iso639.languages.part1:
