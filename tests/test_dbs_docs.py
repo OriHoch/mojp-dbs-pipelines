@@ -22,7 +22,8 @@ def test_sync_with_invalid_collection():
     es_docs = (es_doc(es, "clearmash", id) for id in ["1", "2"])
     doc = deepcopy(EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC[0])
     doc.update(collection="unknown",
-               slug_el="clearmash_greek-title-ελληνικά-elliniká")
+               slug_el="clearmash_greek-title-ελληνικά-elliniká",
+               slugs=['clearmash_greek-title-ελληνικά-elliniká'])
     assert next(es_docs) == doc
 
 
@@ -57,7 +58,8 @@ def test_update():
                                                              title_en="Doc_title",
                                                              title_en_lc="doc_title",
                                                              slug_en="place_doc-title",
-                                                             slug_el="clearmash_place_greek-title-ελληνικά-elliniká")
+                                                             slug_el="clearmash_place_greek-title-ελληνικά-elliniká",
+                                                             slugs=["clearmash_place_greek-title-ελληνικά-elliniká", "place_doc-title"])
     # now, update the item in the mock data, but don't change the version
     sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="one",
                                                                            title_en="new_doc_title"),
@@ -85,7 +87,10 @@ def test_update():
                                                              title_es="FOOBAR",
                                                              slug_es="clearmash_place_foobar",
                                                              title_el_lc="elelel",
-                                                             title_es_lc="foobar")
+                                                             title_es_lc="foobar",
+                                                             slugs=['clearmash_place_elelel', 'place_doc-title',
+                                                                    'מקום_בדיקה-abc', 'clearmash_place_foobar',
+                                                                    'clearmash_place_greek-title-ελληνικά-elliniká'])
     sync_log_resource = when_running_sync_processor_on_mock_data(mock_data(version="three",
                                                                            title_en="new_doc_title"),
                                                                  refresh_elasticsearch=es)
