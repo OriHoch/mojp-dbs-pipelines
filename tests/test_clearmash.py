@@ -170,19 +170,3 @@ def test_not_allowed_item_should_not_be_processed():
     assert_item_permissions(display_status="Museum only", rights="wrong", working_status="not good", is_permitted=False)
     assert_item_permissions(display_status="Museum only", rights="Full", working_status="not good", is_permitted=False)
     assert_item_permissions(display_status="Museum only", rights="Full", working_status="Completed", is_permitted=True)
-
-def test_convert_exception_should_log_row_info(capfd):
-    datapackage, downloaded_doc = given_mock_clearmash_downloaded_doc()
-    downloaded_doc["parsed_doc"]['_c6_beit_hatfutsot_bh_base_template_working_status'] = None
-    resources = assert_processor(ClearmashConvertProcessor,
-                                 parameters={}, datapackage=datapackage, resources=[[downloaded_doc]],
-                                 expected_datapackage={"resources": [{"name": "dbs_docs",
-                                                                      "path": "dbs_docs.csv",
-                                                                      "schema": DBS_DOCS_TABLE_SCHEMA}]})
-    try:
-        list(next(resources))
-        assert False
-    except Exception:
-        out, err = capfd.readouterr()
-        # row object is dumped as info
-        assert "INFO:base_processors:{" in err
