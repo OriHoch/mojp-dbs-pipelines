@@ -18,29 +18,40 @@ class MojpGenerator(GeneratorBase):
     @classmethod
     def generate_pipeline(cls, source):
         for dataSource in source["data-sources"]:
+            delete_parameters = {"all_items_query": {"source": dataSource}}
             if dataSource == "clearmash":
                 # for clearmash we split it into multiple pipelines for each content folder
                 for folder_id, folder in CLEARMASH_CONTENT_FOLDERS.items():
                     name = "{}_{}".format(dataSource, folder["collection"]).lower()
-                    yield name, cls.get_pipeline_details(name, dataSource=dataSource, download_parameters={"folder_id": folder_id})
+                    delete_parameters["all_items_query"]["collection"] = folder["collection"]
+                    yield name, cls.get_pipeline_details(name, dataSource=dataSource,
+                                                         download_parameters={"folder_id": folder_id},
+                                                         delete_parameters=delete_parameters)
             else:
-                yield dataSource, cls.get_pipeline_details(dataSource)
+                yield dataSource, cls.get_pipeline_details(dataSource, delete_parameters=delete_parameters)
 
     @classmethod
-    def get_pipeline_details(cls, name, dataSource=None, download_parameters=None, convert_parameters=None, sync_parameters=None):
+    def get_pipeline_details(cls, name, dataSource=None,
+                             download_parameters=None, convert_parameters=None, sync_parameters=None,
+                             delete_parameters=None):
         if name.lower() != name:
             raise Exception("name must be lower-case!")
         if dataSource is None:
             dataSource = name
         return {"title": name,
-                "pipeline": steps(*cls.get_steps(name, dataSource, download_parameters, convert_parameters, sync_parameters))}
+                "pipeline": steps(*cls.get_steps(name, dataSource,
+                                                 download_parameters, convert_parameters, sync_parameters,
+                                                 delete_parameters))}
 
     @classmethod
-    def get_steps(cls, name, dataSource, download_parameters=None, convert_parameters=None, sync_parameters=None):
+    def get_steps(cls, name, dataSource,
+                  download_parameters=None, convert_parameters=None, sync_parameters=None,
+                  delete_parameters=None):
         steps = [("add_metadata", cls.get_metadata(name))]
         for step, parameters in {"download": download_parameters,
                                  "convert": convert_parameters,
-                                 "sync": sync_parameters}.items():
+                                 "sync": sync_parameters,
+                                 "delete": delete_parameters}.items():
             if not cls.skip_step(name, dataSource, step, parameters):
                 steps.append(cls.get_step(name, dataSource, step, parameters))
         steps.append(("dump.to_path", {"out-path": cls.get_outpath(name)}))
@@ -48,7 +59,11 @@ class MojpGenerator(GeneratorBase):
 
     @classmethod
     def get_step(cls, name, dataSource, step, parameters=None):
-        module = "datapackage_pipelines_mojp.{}.processors".format("common" if step == "sync" else dataSource)
+        if step in ["sync", "delete"]:
+            module = "common"
+        else:
+            module = dataSource
+        module = "datapackage_pipelines_mojp.{}.processors".format(module)
         return ("{}.{}".format(module, step), cls.get_step_params(name, dataSource, step, parameters))
 
     @classmethod

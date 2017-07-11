@@ -130,8 +130,7 @@ def when_running_sync_processor_on_mock_data(mock_data=MOCK_DATA_FOR_SYNC, refre
     resource = next(assert_processor(
         CommonSyncProcessor,
         mock_settings=type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
-                                                       "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX,
-                                                       "MOJP_ELASTICSEARCH_DOCTYPE": "common"}),
+                                                       "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX}),
         parameters={},
         datapackage={'resources': [{'name': DBS_DOCS_RESOURCE_NAME,
                                     'path': '{}.csv'.format(DBS_DOCS_RESOURCE_NAME),
