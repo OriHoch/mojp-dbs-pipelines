@@ -3,7 +3,8 @@ from elasticsearch import Elasticsearch, NotFoundError
 from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
 from datapackage_pipelines_mojp.settings import temp_loglevel, logging
 from datapackage_pipelines_mojp.common.constants import (ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN,
-                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS)
+                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS,
+                                                         PIPELINES_ES_DOC_TYPE)
 import iso639
 from copy import deepcopy
 import logging
@@ -65,15 +66,15 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _add_doc(self, new_doc):
         with temp_loglevel(logging.ERROR):
-            self._es.index(index=self._idx, doc_type=self._get_settings(
-                "MOJP_ELASTICSEARCH_DOCTYPE"), body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
+            self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
+                           body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
         return self._get_sync_response(new_doc, "added to ES")
 
     def _update_doc(self, new_doc, old_doc):
         if old_doc["version"] != new_doc["version"]:
             self._update_doc_slugs(new_doc, old_doc)
             with temp_loglevel(logging.ERROR):
-                self._es.index(index=self._idx, doc_type="common",
+                self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
                                 id="{}_{}".format(
                                     new_doc["source"], new_doc["source_id"]),
                                 body=new_doc)
