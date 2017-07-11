@@ -78,7 +78,7 @@ class FilterResourcesProcessor(BaseProcessor):
             try:
                 filtered_row = self._filter_row(row, descriptor)
             except Exception:
-                logging.info(json.dumps(row))
+                logging.info(row)
                 raise
             if filtered_row is not None:
                 yield filtered_row

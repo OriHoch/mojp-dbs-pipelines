@@ -15,9 +15,9 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
         return descriptor
 
     def _doc_show_filter(self, dbs_row):
-        return bool(dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_working_status')[0].get("en") == 'Completed'
-                    and dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_rights')[0].get("en") == 'Full'
-                    and dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_display_status')[0].get("en") not in ['Internal Use'])
+        return bool(dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_working_status', [{}])[0].get("en") == 'Completed'
+                    and dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_rights', [{}])[0].get("en") == 'Full'
+                    and dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_display_status', [{}])[0].get("en") not in ['Internal Use'])
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == DBS_DOCS_RESOURCE_NAME:

@@ -2,9 +2,15 @@ from .common import (given_empty_elasticsearch_instance,
                      when_running_sync_processor_on_mock_data,
                      es_doc,
                      MOCK_DATA_FOR_SYNC,
-                     EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC)
+                     EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC,
+                     assert_processor,
+                     ELASTICSEARCH_TESTS_INDEX)
 from copy import deepcopy
 from .mocks.data import FAMILY_NAMES_BEN_AMARA
+from datapackage_pipelines_mojp.common.processors.delete import CommonDeleteProcessor
+from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_SYNC_LOG_TABLE_SCHAME
+from elasticsearch.exceptions import NotFoundError
+
 
 def assert_item_missing_content(content_html_en, content_html_he, is_synced):
     es = given_empty_elasticsearch_instance()
@@ -18,11 +24,10 @@ def assert_item_missing_content(content_html_en, content_html_he, is_synced):
     else:
         item["content_html_he"] = content_html_he
     sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
-    assert len(sync_log) == 1
     if is_synced:
-        assert sync_log[0]["sync_msg"] == "added to ES"
+        assert len(sync_log) == 1
     else:
-        assert sync_log[0]["sync_msg"] == "not synced (missing content in en and he)"
+        assert len(sync_log) == 0
 
 def test_sync_with_invalid_collection():
     es = given_empty_elasticsearch_instance()
@@ -153,3 +158,46 @@ def test_item_without_content_should_not_be_synced():
     assert_item_missing_content(content_html_en="a", content_html_he="", is_synced=True)
     assert_item_missing_content(content_html_en=None, content_html_he=None, is_synced=False)
     assert_item_missing_content(content_html_en="a", content_html_he=None, is_synced=True)
+
+def test_delete():
+    es = given_empty_elasticsearch_instance()
+    # the delete query we use will only delete items from same source (and optionally collection)
+    # we add some items with different sources and collections to ensure that only matching items are deleted
+    mock_data = [dict(FAMILY_NAMES_BEN_AMARA, source="clearmash", collection="familyNames", id="115306"),
+                 dict(FAMILY_NAMES_BEN_AMARA, source="clearmash", collection="places", id="115307"),
+                 dict(FAMILY_NAMES_BEN_AMARA, source="foobar", collection="familyNames", id="115308"),
+                 dict(FAMILY_NAMES_BEN_AMARA, source="foobar", collection="places", id="115309"),]
+    sync_log = list(when_running_sync_processor_on_mock_data(mock_data,
+                                                             refresh_elasticsearch=es))
+    assert len(sync_log) == 4
+    assert es_doc(es, "clearmash", "115306")["collection"] == "familyNames"
+    assert es_doc(es, "clearmash", "115307")["collection"] == "places"
+    assert es_doc(es, "foobar", "115308")["collection"] == "familyNames"
+    assert es_doc(es, "foobar", "115309")["collection"] == "places"
+    resources = list(assert_processor(
+        CommonDeleteProcessor,
+        mock_settings=type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
+                                                       "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX}),
+        # this all_items_query means it will only delete items from familyNames collection in clearmash source
+        parameters={"all_items_query": {"source": "clearmash", "collection": "familyNames"}},
+        datapackage={'resources': [{'name': "dbs_docs_sync_log",
+                                    'path': 'dbs_docs_sync_log.csv',
+                                    'schema': DBS_DOCS_SYNC_LOG_TABLE_SCHAME}]},
+        # some fake item which was supposedly synced
+        resources=[[{"source": "clearmash", "id": "bazbax"}]],
+        expected_datapackage={'resources': [{'name': "dbs_docs_sync_log",
+                                             'path': 'dbs_docs_sync_log.csv',
+                                             'schema': DBS_DOCS_SYNC_LOG_TABLE_SCHAME}]}
+    ))
+    assert len(resources) == 1
+    assert list(resources[0]) == [{'source': 'clearmash', 'id': 'bazbax'}]
+    try:
+        es_doc(es, "clearmash", "115306")
+        assert False, "doc should be deleted and raise exception when trying to fetch it"
+    except NotFoundError:
+        assert True
+    # clearmash places were not deleted
+    assert es_doc(es, "clearmash", "115307")["collection"] == "places"
+    # foobar source was not deleted
+    assert es_doc(es, "foobar", "115308")["collection"] == "familyNames"
+    assert es_doc(es, "foobar", "115309")["collection"] == "places"

@@ -3,7 +3,8 @@ from elasticsearch import Elasticsearch, NotFoundError
 from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
 from datapackage_pipelines_mojp.settings import temp_loglevel, logging
 from datapackage_pipelines_mojp.common.constants import (ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN,
-                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS)
+                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS,
+                                                         PIPELINES_ES_DOC_TYPE)
 import iso639
 from copy import deepcopy
 import logging
@@ -65,15 +66,15 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _add_doc(self, new_doc):
         with temp_loglevel(logging.ERROR):
-            self._es.index(index=self._idx, doc_type=self._get_settings(
-                "MOJP_ELASTICSEARCH_DOCTYPE"), body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
+            self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
+                           body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
         return self._get_sync_response(new_doc, "added to ES")
 
     def _update_doc(self, new_doc, old_doc):
         if old_doc["version"] != new_doc["version"]:
             self._update_doc_slugs(new_doc, old_doc)
             with temp_loglevel(logging.ERROR):
-                self._es.index(index=self._idx, doc_type="common",
+                self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
                                 id="{}_{}".format(
                                     new_doc["source"], new_doc["source_id"]),
                                 body=new_doc)
@@ -106,13 +107,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
-            pre_validate_response = self._pre_validate_row(row)
-            if pre_validate_response:
-                logging.info("skipping invalid row ({source}:{collection},{id}@{version}".format(
-                    source=row.get("source"), collection=row.get("collection"),
-                    version=row.get("version"), id=row.get("id")))
-                pre_validate_response["sync_msg"] = "not synced ({})".format(pre_validate_response["sync_msg"])
-                return pre_validate_response
+            if not self._pre_validate_row(row):
+                return None
             else:
                 logging.info("processing row ({source}:{collection},{id}@{version}".format(
                     source=row.get("source"), collection=row.get("collection"),
@@ -148,10 +144,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
     def _pre_validate_row(self, row):
         content_html_he = row.get("content_html_he", "")
         content_html_en = row.get("content_html_en", "")
-        if ((content_html_he is None or len(content_html_he) < 1)
-            and (content_html_en is None or len(content_html_en) < 1)):
-            return self._get_sync_response(row, "missing content in en and he")
-        return None
+        return ((content_html_he is not None and len(content_html_he) > 0)
+                or (content_html_en is not None and len(content_html_en) > 0))
 
     def _validate_collection(self, new_doc):
         if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
