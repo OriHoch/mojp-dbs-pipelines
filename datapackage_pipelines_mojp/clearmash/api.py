@@ -5,6 +5,7 @@ from pyquery import PyQuery as pq
 import os, json
 from itertools import cycle
 from copy import deepcopy
+import logging
 
 
 def parse_error_response_content(content):
@@ -72,6 +73,7 @@ class ClearmashApi(object):
         return self._wcm_api_call("/Documents/Get", {"entitiesIds": entity_ids})
 
     def _wcm_api_call(self, path, post_data=None):
+        logging.info("_wcm_api_call({}, {})".format(path, post_data))
         return self._get_request_json("{}{}".format(WCM_BASE_URL, path),
                                       headers=self._get_headers(),
                                       post_data=post_data)
