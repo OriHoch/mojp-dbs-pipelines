@@ -79,7 +79,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                                 body=new_doc)
             return self._get_sync_response(new_doc, "updated doc in ES (old version = {})".format(json.dumps(old_doc["version"])))
         else:
-            return self._get_sync_response(new_doc["source"], "no update needed")
+            return self._get_sync_response(new_doc, "no update needed")
 
     def _update_doc_slugs(self, new_doc, old_doc):
         # aggregate the new and old doc slugs - so that we will never delete any existing slugs, only add new ones

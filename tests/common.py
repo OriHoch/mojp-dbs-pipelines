@@ -19,11 +19,11 @@ MOCK_DATA_FOR_SYNC = [
     {"source": CLEARMASH_SOURCE_ID, "id": 1, "version": "five", "collection": COLLECTION_PLACES,
      "source_doc": {"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": True},
      "title": {"el":"Greek title ελληνικά, elliniká"}, "title_he": "", "title_en": "",
-     "content_html": {"el":"greek content<br/><b>HTML!</b>"}, "content_html_en": "", "content_html_he": ""},
+     "content_html": {"el":"greek content<br/><b>HTML!</b>"}, "content_html_en": "foo", "content_html_he": "bar"},
     {"source": CLEARMASH_SOURCE_ID, "id": "2", "version": "five", "collection": COLLECTION_FAMILY_NAMES,
      "source_doc": {"title": "222", "content": "2222", "implemented": "not yet", "sorry": True},
      "title": {}, "title_he": "", "title_en": "",
-     "content_html": {"it":"italian content<br/><b>HTML!</b>"}, "content_html_en": "", "content_html_he": ""}
+     "content_html": {"it":"italian content<br/><b>HTML!</b>"}, "content_html_en": "foo", "content_html_he": "bar"}
 ]
 
 EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
@@ -41,8 +41,8 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "title_he_lc": "",
                                          "title_en_lc": "",
                                          "content_html_el": "greek content<br/><b>HTML!</b>",
-                                         "content_html_en": "",
-                                         "content_html_he": "",
+                                         "content_html_en": "foo",
+                                         "content_html_he": "bar",
                                          # this is from the source_doc
                                          # (title field was overridden and deleted)
                                          "content": "bazbax",
@@ -61,8 +61,8 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          "title_he_lc": "",
                                          "title_en_lc": "",
                                          "content_html_it": "italian content<br/><b>HTML!</b>",
-                                         "content_html_en": "",
-                                         "content_html_he": "",
+                                         "content_html_en": "foo",
+                                         "content_html_he": "bar",
                                          "content": "2222",
                                          "implemented": "not yet",
                                          "sorry": "True"}]

@@ -60,7 +60,7 @@ def test_initial_sync():
 def test_update():
     # shotrcut functions to get mock data we use later
     mock_data = lambda **kwargs: [dict(MOCK_DATA_FOR_SYNC[0],
-                                       id=666, **kwargs)]
+                                       id="666", **kwargs)]
     expected_es_doc = lambda **kwargs: dict(
         EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC[0], source_id="666", **kwargs)
     sync_log = lambda **kwargs: dict({"source": "clearmash",
