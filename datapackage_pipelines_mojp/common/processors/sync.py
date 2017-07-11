@@ -106,14 +106,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _filter_row(self, row, resource_descriptor):
         if resource_descriptor["name"] == "dbs_docs_sync_log":
-            pre_validate_response = self._pre_validate_row(row)
-            if pre_validate_response:
-                logging.info("skipping invalid row ({source}:{collection},{id}@{version}".format(
-                    source=row.get("source"), collection=row.get("collection"),
-                    version=row.get("version"), id=row.get("id")))
-                pre_validate_response["sync_msg"] = "not synced ({})".format(pre_validate_response["sync_msg"])
-                return pre_validate_response
-            else:
+            if self._pre_validate_row(row):
                 logging.info("processing row ({source}:{collection},{id}@{version}".format(
                     source=row.get("source"), collection=row.get("collection"),
                     version=row.get("version"), id=row.get("id")))
@@ -142,16 +135,16 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                                       "row={1}".format(resource_descriptor,
                                                        original_row))
                     raise
+            else:
+                return None
         else:
             return row
 
     def _pre_validate_row(self, row):
         content_html_he = row.get("content_html_he", "")
         content_html_en = row.get("content_html_en", "")
-        if ((content_html_he is None or len(content_html_he) < 1)
-            and (content_html_en is None or len(content_html_en) < 1)):
-            return self._get_sync_response(row, "missing content in en and he")
-        return None
+        return ((content_html_he is not None and len(content_html_he) > 0)
+                or (content_html_en is not None and len(content_html_en) > 0))
 
     def _validate_collection(self, new_doc):
         if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:

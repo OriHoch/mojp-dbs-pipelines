@@ -18,11 +18,10 @@ def assert_item_missing_content(content_html_en, content_html_he, is_synced):
     else:
         item["content_html_he"] = content_html_he
     sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
-    assert len(sync_log) == 1
     if is_synced:
-        assert sync_log[0]["sync_msg"] == "added to ES"
+        assert len(sync_log) == 1
     else:
-        assert sync_log[0]["sync_msg"] == "not synced (missing content in en and he)"
+        assert len(sync_log) == 0
 
 def test_sync_with_invalid_collection():
     es = given_empty_elasticsearch_instance()

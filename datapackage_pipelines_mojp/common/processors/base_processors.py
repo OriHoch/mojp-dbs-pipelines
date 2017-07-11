@@ -73,7 +73,9 @@ class FilterResourcesProcessor(BaseProcessor):
 
     def _filter_resource(self, resource, descriptor):
         for row in resource:
-            yield self._filter_row(row, descriptor)
+            filtered_row = self._filter_row(row, descriptor)
+            if filtered_row is not None:
+                yield filtered_row
 
     def _filter_row(self, row, resource_descriptor):
         return row
