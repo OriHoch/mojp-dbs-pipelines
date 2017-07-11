@@ -170,3 +170,13 @@ def test_not_allowed_item_should_not_be_processed():
     assert_item_permissions(display_status="Museum only", rights="wrong", working_status="not good", is_permitted=False)
     assert_item_permissions(display_status="Museum only", rights="Full", working_status="not good", is_permitted=False)
     assert_item_permissions(display_status="Museum only", rights="Full", working_status="Completed", is_permitted=True)
+
+def test_invalid_doc_should_not_be_processed():
+    datapackage, downloaded_doc = given_mock_clearmash_downloaded_doc()
+    downloaded_doc["parsed_doc"] = {}
+    resources = assert_processor(ClearmashConvertProcessor,
+                                 parameters={}, datapackage=datapackage, resources=[[downloaded_doc]],
+                                 expected_datapackage={"resources": [{"name": "dbs_docs",
+                                                                      "path": "dbs_docs.csv",
+                                                                      "schema": DBS_DOCS_TABLE_SCHEMA}]})
+    assert len(list(next(resources))) == 0

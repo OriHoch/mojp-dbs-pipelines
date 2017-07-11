@@ -2,6 +2,7 @@ from datapackage_pipelines_mojp.common.processors.base_processors import BaseDow
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, MockClearMashApi, parse_clearmash_document
 from datapackage_pipelines_mojp.clearmash.constants import (CONTENT_FOLDERS, DOWNLOAD_TABLE_SCHEMA,
                                                             ITEM_IDS_BUFFER_LENGTH)
+import os
 
 
 class ClearmashDownloadProcessor(BaseDownloadProcessor):
@@ -21,13 +22,18 @@ class ClearmashDownloadProcessor(BaseDownloadProcessor):
     def _download(self, clearmash_api=None):
         if not clearmash_api:
             clearmash_api = self._get_clearmash_api()
-        for folder_id, folder in CONTENT_FOLDERS.items():
-            if self._parameters.get("folder_id", "") == "" or self._parameters["folder_id"] == folder_id:
-                self.item_ids_buffer = []
-                for item in clearmash_api.get_web_document_system_folder(folder_id)["Items"]:
-                    self.item_ids_buffer.append(item["Id"])
-                    yield from self._handle_item_ids_buffer(folder, clearmash_api)
-                yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
+        if self._parameters.get("folder_id") and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS"):
+            self.item_ids_buffer = list(map(int, os.environ["CLEARMASH_OVERRIDE_ITEM_IDS"].split(",")))
+            folder = CONTENT_FOLDERS[self._parameters["folder_id"]]
+            yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
+        else:
+            for folder_id, folder in CONTENT_FOLDERS.items():
+                if self._parameters.get("folder_id", "") == "" or self._parameters["folder_id"] == folder_id:
+                    self.item_ids_buffer = []
+                    for item in clearmash_api.get_web_document_system_folder(folder_id)["Items"]:
+                        self.item_ids_buffer.append(item["Id"])
+                        yield from self._handle_item_ids_buffer(folder, clearmash_api)
+                    yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
 
     def _mock_download(self):
         yield from self._download(clearmash_api=self._get_mock_clearmash_api())
