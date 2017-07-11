@@ -189,15 +189,28 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         for lang in iso639.languages.part1:
             if "slug_{}".format(lang) in new_doc:
                 slug = new_doc["slug_{}".format(lang)]
+                slug = self._ensure_slug_uniqueness(slug, new_doc)
+                new_doc["slug_{}".format(lang)] = slug
                 if slug not in slugs:
                     slugs.append(slug)
         # ensure every doc has at least 1 slug (in any language)
         if len(slugs) == 0:
             # add english slug comprised of doc id
             self._add_slug(new_doc, new_doc["source_id"], "en")
-            slugs.append(new_doc["slug_en"])
+            slug = new_doc["slug_en"]
+            slug = self._ensure_slug_uniqueness(slug, new_doc)
+            new_doc["slug_en"] = slug
+            slugs.append(slug)
         # add the slugs attribute (needed for fetching item page based on slug)
         new_doc["slugs"] = slugs
+
+    def _ensure_slug_uniqueness(self, slug, doc):
+        body = {"query": {"constant_score": {"filter": {"term": {"slugs": slug}}}}}
+        results = self._es.search(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE, body=body, ignore_unavailable=True)
+        for hit in results["hits"]["hits"]:
+            if hit["_id"] != "{}_{}".format(doc["source"], doc["source_id"]):
+                return self._ensure_slug_uniqueness("{}-{}".format(slug, doc["source_id"]), doc)
+        return slug
 
     def _add_title_related_fields(self, new_doc):
         for lang in iso639.languages.part1:

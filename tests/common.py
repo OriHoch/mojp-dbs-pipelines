@@ -7,7 +7,7 @@ from jsontableschema.model import SchemaModel
 from jsontableschema import Schema
 from elasticsearch import Elasticsearch, NotFoundError
 import json, logging
-from datapackage_pipelines_mojp.common.constants import COLLECTION_PLACES, COLLECTION_FAMILY_NAMES
+from datapackage_pipelines_mojp.common.constants import COLLECTION_PLACES, COLLECTION_FAMILY_NAMES, PIPELINES_ES_DOC_TYPE
 from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
 from copy import deepcopy
 
@@ -123,6 +123,9 @@ def given_empty_elasticsearch_instance(host="localhost:9200", index=ELASTICSEARC
         es.indices.delete(index)
     except NotFoundError:
         pass
+    # we create only a part of the full index - only what's needed for our testing purposes
+    # to get the full index you should use dbs-back scripts/elasticsearch_create_index script
+    es.indices.create(index, body={"mappings": {PIPELINES_ES_DOC_TYPE: {"properties": {"slugs": {"type": "keyword"}}}}})
     return es
 
 def when_running_sync_processor_on_mock_data(mock_data=MOCK_DATA_FOR_SYNC, refresh_elasticsearch=None):
