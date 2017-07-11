@@ -6,6 +6,23 @@ from .common import (given_empty_elasticsearch_instance,
 from copy import deepcopy
 from .mocks.data import FAMILY_NAMES_BEN_AMARA
 
+def assert_item_missing_content(content_html_en, content_html_he, is_synced):
+    es = given_empty_elasticsearch_instance()
+    item = deepcopy(FAMILY_NAMES_BEN_AMARA)
+    if content_html_en == "del":
+        del item["content_html_en"]
+    else:
+        item["content_html_en"] = content_html_en
+    if content_html_he == "del":
+        del item["content_html_he"]
+    else:
+        item["content_html_he"] = content_html_he
+    sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    if is_synced:
+        assert sync_log[0]["sync_msg"] == "added to ES"
+    else:
+        assert sync_log[0]["sync_msg"] == "not synced (missing content in en and he)"
 
 def test_sync_with_invalid_collection():
     es = given_empty_elasticsearch_instance()
@@ -43,7 +60,7 @@ def test_initial_sync():
 def test_update():
     # shotrcut functions to get mock data we use later
     mock_data = lambda **kwargs: [dict(MOCK_DATA_FOR_SYNC[0],
-                                       id=666, **kwargs)]
+                                       id="666", **kwargs)]
     expected_es_doc = lambda **kwargs: dict(
         EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC[0], source_id="666", **kwargs)
     sync_log = lambda **kwargs: dict({"source": "clearmash",
@@ -128,3 +145,11 @@ def test_slugs():
     slugs = [(k,v) for k,v in doc.items() if k.startswith("slug_")]
     assert slugs == [('slug_en', ['familyname_115306', 'familyname_ben-amara']),
                      ('slug_he', 'שםמשפחה_בן-עמרה')]
+
+def test_item_without_content_should_not_be_synced():
+    assert_item_missing_content(content_html_en="del", content_html_he="del", is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he="del", is_synced=True)
+    assert_item_missing_content(content_html_en="", content_html_he="", is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he="", is_synced=True)
+    assert_item_missing_content(content_html_en=None, content_html_he=None, is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he=None, is_synced=True)
