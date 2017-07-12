@@ -201,3 +201,34 @@ def test_delete():
     # foobar source was not deleted
     assert es_doc(es, "foobar", "115308")["collection"] == "familyNames"
     assert es_doc(es, "foobar", "115309")["collection"] == "places"
+
+def test_unique_slugs():
+    es = given_empty_elasticsearch_instance()
+    sync_log = list(when_running_sync_processor_on_mock_data([FAMILY_NAMES_BEN_AMARA], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == "added to ES"
+    assert es_doc(es, "clearmash", "115306")["slugs"] == ['familyname_ben-amara', 'שםמשפחה_בן-עמרה']
+    # now, add a different doc which will have the same slug
+    item = dict(FAMILY_NAMES_BEN_AMARA, id="115307")
+    sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == "added to ES"
+    assert es_doc(es, "clearmash", "115307")["slugs"] == ['familyname_ben-amara-115307', 'שםמשפחה_בן-עמרה-115307']
+    # try the same item again - no update
+    item = dict(FAMILY_NAMES_BEN_AMARA, id="115307")
+    sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == "no update needed"
+    assert es_doc(es, "clearmash", "115307")["slugs"] == ['familyname_ben-amara-115307', 'שםמשפחה_בן-עמרה-115307']
+    # now, try to update the title of the original to get another conflicting slug
+    item = dict(FAMILY_NAMES_BEN_AMARA, title_en="Ben Amara 115307", version="new version")
+    sync_log = list(when_running_sync_processor_on_mock_data([item], refresh_elasticsearch=es))
+    assert len(sync_log) == 1
+    assert sync_log[0]["sync_msg"] == 'updated doc in ES (old version = "2991606-f91ea044052746a2903d6ee60d9b374b")'
+    # added an additional non-conflicting slug
+    doc = es_doc(es, "clearmash", "115306")
+    assert doc["slugs"] == ['familyname_ben-amara-115307-115306',
+                            'שםמשפחה_בן-עמרה',
+                            'familyname_ben-amara']
+    assert doc["slug_en"] == ['familyname_ben-amara-115307-115306', 'familyname_ben-amara']
+    assert doc["slug_he"] == 'שםמשפחה_בן-עמרה'
