@@ -75,7 +75,11 @@ class MojpGenerator(GeneratorBase):
 
     @classmethod
     def skip_step(cls, name, dataSource, step, parameters=None):
-        if MOJP_ONLY_DOWNLOAD:
+        if dataSource == "clearmash" and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS") and step == "delete":
+            # when overriding clearmash item ids, there is no sense to run delete step
+            # because it will delete all items
+            return True
+        elif MOJP_ONLY_DOWNLOAD:
             return step != "download"
         else:
             return False
