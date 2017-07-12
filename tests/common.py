@@ -17,7 +17,7 @@ ELASTICSEARCH_TESTS_INDEX = "mojptests"
 
 MOCK_DATA_FOR_SYNC = [
     {"source": CLEARMASH_SOURCE_ID, "id": 1, "version": "five", "collection": COLLECTION_PLACES,
-     "source_doc": {"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": True},
+     "source_doc": {"title": "foobar", "content": "bazbax", "implemented": "not yet", "sorry": True, "parsed_doc": {"foo":"bar"}},
      "title": {"el":"Greek title ελληνικά, elliniká"}, "title_he": "", "title_en": "",
      "content_html": {"el":"greek content<br/><b>HTML!</b>"}, "content_html_en": "foo", "content_html_he": "bar"},
     {"source": CLEARMASH_SOURCE_ID, "id": "2", "version": "five", "collection": COLLECTION_FAMILY_NAMES,
@@ -47,7 +47,8 @@ EXPECTED_ES_DOCS_FROM_MOCK_DATA_SYNC = [{"version": "five",
                                          # (title field was overridden and deleted)
                                          "content": "bazbax",
                                          "implemented": "not yet",
-                                         "sorry": "True"},
+                                         "sorry": "True",
+                                         "parsed_doc": "{\"foo\": \"bar\"}"},
                                         {"version": "five",
                                          "source": "clearmash",
                                          "source_id": "2",

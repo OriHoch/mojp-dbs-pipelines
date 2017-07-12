@@ -156,7 +156,10 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         # but, we make sure all attributes are strings to ensure we don't have wierd values there (we have)
         new_doc = {}
         for k, v in source_doc.items():
-            new_doc[k] = str(v)
+            if isinstance(v, dict):
+                new_doc[k] = json.dumps(v)
+            else:
+                new_doc[k] = str(v)
         # then, we override with the other row values
         new_doc.update(row)
         # rename the id field
