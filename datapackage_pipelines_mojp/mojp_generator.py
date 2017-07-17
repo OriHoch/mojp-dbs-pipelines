@@ -18,22 +18,22 @@ class MojpGenerator(GeneratorBase):
     @classmethod
     def generate_pipeline(cls, source):
         for dataSource in source["data-sources"]:
-            delete_parameters = {"all_items_query": {"source": dataSource}}
+            post_parameters = {"all_items_query": {"source": dataSource}}
             if dataSource == "clearmash":
                 # for clearmash we split it into multiple pipelines for each content folder
                 for folder_id, folder in CLEARMASH_CONTENT_FOLDERS.items():
                     name = "{}_{}".format(dataSource, folder["collection"]).lower()
-                    delete_parameters["all_items_query"]["collection"] = folder["collection"]
+                    post_parameters["all_items_query"]["collection"] = folder["collection"]
                     yield name, cls.get_pipeline_details(name, dataSource=dataSource,
                                                          download_parameters={"folder_id": folder_id},
-                                                         delete_parameters=delete_parameters)
+                                                         post_parameters=post_parameters)
             else:
-                yield dataSource, cls.get_pipeline_details(dataSource, delete_parameters=delete_parameters)
+                yield dataSource, cls.get_pipeline_details(dataSource, post_parameters=post_parameters)
 
     @classmethod
     def get_pipeline_details(cls, name, dataSource=None,
                              download_parameters=None, convert_parameters=None, sync_parameters=None,
-                             delete_parameters=None):
+                             post_parameters=None):
         if name.lower() != name:
             raise Exception("name must be lower-case!")
         if dataSource is None:
@@ -41,17 +41,17 @@ class MojpGenerator(GeneratorBase):
         return {"title": name,
                 "pipeline": steps(*cls.get_steps(name, dataSource,
                                                  download_parameters, convert_parameters, sync_parameters,
-                                                 delete_parameters))}
+                                                 post_parameters))}
 
     @classmethod
     def get_steps(cls, name, dataSource,
                   download_parameters=None, convert_parameters=None, sync_parameters=None,
-                  delete_parameters=None):
+                  post_parameters=None):
         steps = [("add_metadata", cls.get_metadata(name))]
         for step, parameters in {"download": download_parameters,
                                  "convert": convert_parameters,
                                  "sync": sync_parameters,
-                                 "delete": delete_parameters}.items():
+                                 "post": post_parameters}.items():
             if not cls.skip_step(name, dataSource, step, parameters):
                 steps.append(cls.get_step(name, dataSource, step, parameters))
         steps.append(("dump.to_path", {"out-path": cls.get_outpath(name)}))
@@ -59,7 +59,7 @@ class MojpGenerator(GeneratorBase):
 
     @classmethod
     def get_step(cls, name, dataSource, step, parameters=None):
-        if step in ["sync", "delete"]:
+        if step in ["sync", "post"]:
             module = "common"
         else:
             module = dataSource
@@ -75,9 +75,7 @@ class MojpGenerator(GeneratorBase):
 
     @classmethod
     def skip_step(cls, name, dataSource, step, parameters=None):
-        if dataSource == "clearmash" and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS") and step == "delete":
-            # when overriding clearmash item ids, there is no sense to run delete step
-            # because it will delete all items
+        if dataSource == "clearmash" and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS") and step == "post":
             return True
         elif MOJP_ONLY_DOWNLOAD:
             return step != "download"

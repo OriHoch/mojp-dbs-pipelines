@@ -7,7 +7,7 @@ from .common import (given_empty_elasticsearch_instance,
                      ELASTICSEARCH_TESTS_INDEX)
 from copy import deepcopy
 from .mocks.data import FAMILY_NAMES_BEN_AMARA
-from datapackage_pipelines_mojp.common.processors.delete import CommonDeleteProcessor
+from datapackage_pipelines_mojp.common.processors.post import CommonPostProcessor
 from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_SYNC_LOG_TABLE_SCHAME
 from elasticsearch.exceptions import NotFoundError
 
@@ -175,7 +175,7 @@ def test_delete():
     assert es_doc(es, "foobar", "115308")["collection"] == "familyNames"
     assert es_doc(es, "foobar", "115309")["collection"] == "places"
     resources = list(assert_processor(
-        CommonDeleteProcessor,
+        CommonPostProcessor,
         mock_settings=type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
                                                        "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX}),
         # this all_items_query means it will only delete items from familyNames collection in clearmash source

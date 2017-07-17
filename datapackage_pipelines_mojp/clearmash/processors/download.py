@@ -1,11 +1,20 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseDownloadProcessor
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, MockClearMashApi, parse_clearmash_document
+from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, MockClearMashApi, parse_clearmash_documents
 from datapackage_pipelines_mojp.clearmash.constants import (CONTENT_FOLDERS, DOWNLOAD_TABLE_SCHEMA,
                                                             ITEM_IDS_BUFFER_LENGTH)
 import os
+from datapackage_pipelines_mojp.common.constants import PIPELINES_ES_DOC_TYPE
+import elasticsearch
+import elasticsearch.helpers
+import logging
 
 
 class ClearmashDownloadProcessor(BaseDownloadProcessor):
+
+    def __init__(self, *args, **kwargs):
+        super(ClearmashDownloadProcessor, self).__init__(*args, **kwargs)
+        self._es = elasticsearch.Elasticsearch(self._get_settings("MOJP_ELASTICSEARCH_DB"))
+        self._idx = self._get_settings("MOJP_ELASTICSEARCH_INDEX")
 
     def _get_clearmash_api(self):
         return ClearmashApi()
@@ -22,7 +31,18 @@ class ClearmashDownloadProcessor(BaseDownloadProcessor):
     def _download(self, clearmash_api=None):
         if not clearmash_api:
             clearmash_api = self._get_clearmash_api()
-        if self._parameters.get("folder_id") and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS"):
+        if self._parameters.get("related"):
+            items = elasticsearch.helpers.scan(self._es, index=self._idx,
+                                               doc_type=PIPELINES_ES_DOC_TYPE, scroll=u"3h")
+            for item in items:
+                entity_id = item["_source"]["item_id"]
+                for k, v in item.items():
+                    if k.startswith("related_documents_"):
+                        field_id = k.replace("related_documents_", "")
+                        logging.info(entity_id)
+                        logging.info(field_id)
+                        logging.info(v)
+        elif self._parameters.get("folder_id") and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS"):
             self.item_ids_buffer = list(map(int, os.environ["CLEARMASH_OVERRIDE_ITEM_IDS"].split(",")))
             folder = CONTENT_FOLDERS[self._parameters["folder_id"]]
             yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
@@ -40,24 +60,9 @@ class ClearmashDownloadProcessor(BaseDownloadProcessor):
 
     def _handle_item_ids_buffer(self, folder, clearmash_api, force_flush=False):
         if force_flush or len(self.item_ids_buffer) > ITEM_IDS_BUFFER_LENGTH:
-            documents_response = clearmash_api.get_documents(self.item_ids_buffer)
-            reference_datasource_items = documents_response.pop("ReferencedDatasourceItems")
-            entities = documents_response.pop("Entities")
-            for entity in entities:
-                document = entity.pop("Document")
-                metadata = entity.pop("Metadata")
-                template_reference = document.pop("TemplateReference")
-                document_id = document.pop("Id")
-                parsed_doc = parse_clearmash_document(document, reference_datasource_items)
-                yield {"document_id": document_id,
-                       "item_id": int(metadata.pop("Id")),
-                       "item_url": metadata.pop("Url"),
-                       "template_changeset_id": template_reference.pop("ChangesetId"),
-                       "template_id": template_reference.pop("TemplateId"),
-                       "metadata": metadata,
-                       "parsed_doc": parsed_doc,
-                       "changeset": int(entity.pop("Changeset")),
-                       "collection": folder["collection"]}
+            for item in parse_clearmash_documents(clearmash_api.get_documents(self.item_ids_buffer)):
+                item["collection"] = folder["collection"]
+                yield item
             self.item_ids_buffer = []
 
 
