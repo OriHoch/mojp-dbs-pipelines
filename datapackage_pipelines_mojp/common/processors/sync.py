@@ -250,6 +250,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         if "related_documents" in new_doc:
             for k, v in new_doc["related_documents"].items():
                 new_doc["related_documents_{}".format(k)] = v
+            del new_doc["related_documents"]
 
 if __name__ == '__main__':
     CommonSyncProcessor.main()
