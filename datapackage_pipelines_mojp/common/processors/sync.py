@@ -32,7 +32,9 @@ DBS_DOCS_TABLE_SCHEMA = {"fields": [{"name": "source", "type": "string"},
                                     {"name": "main_image_url", "type": "string",
                                      "description": "url to the main image"},
                                     {"name": "main_thumbnail_image_url", "type": "string",
-                                     "description": "url to the main thumbnail image"},]}
+                                     "description": "url to the main thumbnail image"},
+                                    {"name": "related_documents", "type": "object",
+                                     "description": "related documents of different types (source-specific)"}]}
 
 DBS_DOCS_SYNC_LOG_TABLE_SCHAME = {"fields": [{"name": "source", "type": "string"},
                                              {'name': 'id', 'type': 'string'},
@@ -119,6 +121,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                     source_doc = row.pop("source_doc")
                     new_doc = self._initialize_new_doc(row, source_doc)
                     self._populate_language_fields(new_doc, row)
+                    self._populate_related_documents(new_doc, row)
                     self._add_title_related_fields(new_doc)
                     self._validate_collection(new_doc)
                     self._validate_slugs(new_doc)
@@ -243,6 +246,10 @@ class CommonSyncProcessor(FilterResourcesProcessor):
             # delete the combined json lang field from the new_doc
             del new_doc[lang_field]
 
+    def _populate_related_documents(self, new_doc, row):
+        if "related_documents" in new_doc:
+            for k, v in new_doc["related_documents"].items():
+                new_doc["related_documents_{}".format(k)] = v
 
 if __name__ == '__main__':
     CommonSyncProcessor.main()

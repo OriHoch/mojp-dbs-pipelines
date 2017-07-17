@@ -11,6 +11,23 @@ import logging
 def parse_error_response_content(content):
     return [p.text for p in pq(content[2:])("#content p")]
 
+def parse_clearmash_documents(documents_response):
+    reference_datasource_items = documents_response.pop("ReferencedDatasourceItems")
+    entities = documents_response.pop("Entities")
+    for entity in entities:
+        document = entity.pop("Document")
+        metadata = entity.pop("Metadata")
+        template_reference = document.pop("TemplateReference")
+        document_id = document.pop("Id")
+        parsed_doc = parse_clearmash_document(document, reference_datasource_items)
+        yield {"document_id": document_id,
+               "item_id": int(metadata.pop("Id")),
+               "item_url": metadata.pop("Url"),
+               "template_changeset_id": template_reference.pop("ChangesetId"),
+               "template_id": template_reference.pop("TemplateId"),
+               "metadata": metadata,
+               "parsed_doc": parsed_doc,
+               "changeset": int(entity.pop("Changeset"))}
 
 def parse_clearmash_document(document, reference_datasource_items):
     parsed_doc = {}
@@ -76,12 +93,12 @@ class ClearmashApi(object):
         return self._wcm_api_call("/Document/ByRelationField", {"EntityId": entity_id, "FieldId": field, "MaxNestingDepth": max_nesting_depth})
 
     def _wcm_api_call(self, path, post_data=None):
-        logging.info("_wcm_api_call({}, {})".format(path, post_data))
         return self._get_request_json("{}{}".format(WCM_BASE_URL, path),
                                       headers=self._get_headers(),
                                       post_data=post_data)
 
     def _get_request_json(self, url, headers, post_data=None):
+        logging.info("_get_request_json({}, {})".format(url, post_data))
         if post_data:
             res = requests.post(url, headers=headers, json=post_data)
         else:
@@ -120,3 +137,17 @@ class MockClearMashApi(ClearmashApi):
             entity["Metadata"].update(Id=entity_id, Url="http://foo.bar.baz/{}".format(entity_id))
             response["Entities"].append(entity)
         return response
+
+    def _get_mock_request_filename(self, url, headers, post_data):
+        if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Document/ByRelationField":
+            return "clearmash-api-get-related-docs-by-item-field-220590.json"
+        else:
+            return None
+
+    def _get_request_json(self, url, headers, post_data=None):
+        filename = self._get_mock_request_filename(url, headers, post_data)
+        if not filename:
+            return super(MockClearMashApi, self)._get_request_json(url, headers, post_data)
+        else:
+            with open(os.path.join(os.path.dirname(__file__), "mock_data", filename)) as f:
+                return json.load(f)

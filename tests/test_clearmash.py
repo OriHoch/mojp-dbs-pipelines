@@ -6,13 +6,15 @@ from .common import assert_processor, assert_conforms_to_dbs_schema, assert_conf
 from datapackage_pipelines_mojp.clearmash.constants import (CLEARMASH_SOURCE_ID, DOWNLOAD_TABLE_SCHEMA,
                                                             WEB_CONTENT_FOLDER_ID_Place)
 from datapackage_pipelines_mojp.common.constants import COLLECTION_FAMILY_NAMES, COLLECTION_PLACES
+from .common import ELASTICSEARCH_TESTS_INDEX
 
 
 ## setup / utility functions
 
 
 def given_mock_clearmash_downloaded_doc(override_parameters=None):
-    settings = type("MockSettings", (object,), {})
+    settings = type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
+                                                "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX})
     parameters = {"mock": True}
     if override_parameters:
         parameters.update(override_parameters)
@@ -97,6 +99,7 @@ def assert_mock_clearmash_dbs_doc(doc):
     assert list(doc.keys()) == ['source', 'id', 'source_doc', 'version',
                                 "collection",
                                 'main_image_url', "main_thumbnail_image_url",
+                                'related_documents',
                                 'title', 'title_he', 'title_en',
                                 'content_html', 'content_html_he', 'content_html_en',]
     # the source and id are the unique identified of the doc within the Mojp dbs
@@ -180,3 +183,22 @@ def test_invalid_doc_should_not_be_processed():
                                                                       "path": "dbs_docs.csv",
                                                                       "schema": DBS_DOCS_TABLE_SCHEMA}]})
     assert len(list(next(resources))) == 0
+
+def test_doc_related():
+    settings = type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
+                                                "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX})
+    parameters = {"mock": True}
+    datapackage, resources = ClearmashDownloadProcessor(parameters=parameters,
+                                                        datapackage={"resources": []},
+                                                        resources=[],
+                                                        settings=settings).spew()
+    resource = list(next(resources))
+    doc = resource[2]
+    assert doc["parsed_doc"]["_c6_beit_hatfutsot_bh_base_template_multimedia_photos"] == (
+    "RelatedDocuments", {'FirstPageOfReletedDocumentsIds': ['3a18b553fce24f5ba8a6aa9ef73416c5',
+                                                            '03ee32a9d8c04709a50077e43ba4d412',
+                                                            '1fb971955cd140a9ad65bb78ea6a2ad1'],
+                         'FirstPageParams_ArchiveFilter': 2,
+                         'FirstPageParams_ReverseOrder': False,
+                         'Id': '_c6_beit_hatfutsot_bh_base_template_multimedia_photos',
+                         'TotalItemsCount': 3})
