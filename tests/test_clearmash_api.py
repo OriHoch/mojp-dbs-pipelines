@@ -1,4 +1,10 @@
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_error_response_content, parse_clearmash_document, ClearmashRelatedDocuments
+from datapackage_pipelines_mojp.clearmash.api import (ClearmashApi,
+                                                      parse_error_response_content,
+                                                      parse_clearmash_document,
+                                                      parse_clearmash_documents,
+                                                      ClearmashRelatedDocuments,
+                                                      ClearmashChildDocuments,
+                                                      ClearmashMediaGalleries)
 import os, json
 from requests.exceptions import HTTPError
 from datapackage_pipelines_mojp.clearmash.constants import WEB_CONTENT_FOLDER_ID_Place
@@ -6,23 +12,16 @@ from datapackage_pipelines_mojp.clearmash.constants import WEB_CONTENT_FOLDER_ID
 
 class MockClearmashApi(ClearmashApi):
 
-    def __init__(self, disable_write=False):
-        self.disable_write = disable_write
-        token = os.environ.get("MOCK_CLEARMASH_API_WRITE_TOKEN")
-        if not token:
-            token = "FAKE_TOKEN"
-        super(MockClearmashApi, self).__init__(token)
-
     def mock_invalid_call(self):
         return self._wcm_api_call("/invalid/path")
 
     def _get_mock_url_request_json(self, filename, callback):
-        if not self.disable_write and not os.path.exists(filename):
+        if not os.path.exists(filename):
             res = callback()
             with open(filename, "w") as f:
                 json.dump(res, f, indent=4)
         with open(filename) as f:
-                return json.load(f)
+            return json.load(f)
 
     def _get_request_json(self, url, headers, post_data=None):
         if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/CommunityPage/Folder/Root":
@@ -58,15 +57,19 @@ class MockClearmashApi(ClearmashApi):
             raise Exception("invalid url: {}".format(url))
 
 class MockClearmashRelatedDocuments(ClearmashRelatedDocuments):
-    
-    def __init__(self, first_page_of_results, entity_id, field_name):
-        self.first_page_of_results = first_page_of_results
-        self.entity_id = entity_id
-        self.field_name = field_name
 
-    def get_mock_related_documents(self):
-        related_documents = MockClearmashApi().get_document_related_docs_by_fields(self.entity_id, self.field_name)
-        return related_documents
+    def get_clearmash_api(self):
+        return MockClearmashApi()
+
+class MockClearmashChildDocuments(ClearmashChildDocuments):
+
+    def get_clearmash_api(self):
+        return MockClearmashApi()
+
+class MockClearmashMediaGalleries(ClearmashMediaGalleries):
+
+    def get_clearmash_api(self):
+        return MockClearmashApi()
 
 def test_invalid_call():
     try:
@@ -172,18 +175,46 @@ def test_get_related_docs_of_item():
     assert photo_id == 123737
     assert photo_url == "~~st~~c72ca946fa684845b566949b38e35506.JPG"
 
-def test_get_documents():
-    res = MockClearmashApi()._wcm_api_call("/Documents/Get", {'entitiesIds': [115353]})
-    entity_document = res["Entities"][0]["Document"]
-    related_documents = entity_document["Fields_RelatedDocuments"]
-    for i in related_documents:
-        if i["Id"] == "_c6_beit_hatfutsot_bh_base_template_multimedia_photos":
-            first_related = i["FirstPageOfReletedDocumentsIds"]
-    assert first_related == ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
-    # first_page_of_results = ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
-    related = MockClearmashRelatedDocuments(first_related, 115353, "_c6_beit_hatfutsot_bh_base_template_multimedia_photos")
-    assert isinstance(related, MockClearmashRelatedDocuments)
-    assert related.first_page_results() == ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
-    all_related = related.get_mock_related_documents()
-    first_doc = all_related["Entities"][1]
-    assert first_doc["Metadata"]["Id"] == 182346
+def test_get_related_documents():
+    docs = list(parse_clearmash_documents(MockClearmashApi().get_documents([115353])))
+    related_docs = MockClearmashRelatedDocuments.get_for_doc(docs[0])
+    photos = related_docs["_c6_beit_hatfutsot_bh_base_template_multimedia_photos"]
+    assert photos.first_page_results == ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
+    assert photos.total_count == 2
+    related_documents = list(photos.get_related_documents())
+    assert len(related_documents) == 2
+    assert related_documents[0]["document_id"] == "aa7f0fa3c54d44a1b8e59f695f921dd5"
+    assert related_documents[0]["parsed_doc"]["entity_name"] == {
+        'en': 'Naim Dangoor and the Archbishop of Canterbury, London, England 1988',
+        'he': 'נעים דנגור והארכיבישוף מקנטרברי בכנס לענייני דתות, לונדון, אנגליה 1988'}
+    assert related_documents[1]["document_id"] == "92e5a62105bc4813b61b3e702c0561d6"
+
+def test_get_child_documents():
+    parent_doc = next(parse_clearmash_documents(MockClearmashApi().get_documents([164467])))
+    child_docs = MockClearmashChildDocuments.get_for_doc(parent_doc)
+    assert len(child_docs) == 5
+    films_multimedia_child_docs = child_docs["_c6_beit_hatfutsot_bh_films_multimedia"]
+    assert len(films_multimedia_child_docs) == 1
+    child_doc = films_multimedia_child_docs[0]
+    assert child_doc.document_id == "1cab6a4ff19b4e688c9a406d1ad4fd40"
+    assert child_doc.template_reference == {'ChangesetId': 5135675, 'TemplateId': '_c6_beit_hatfutsot_bh_multimedia_film'}
+    assert child_doc.parsed_doc["_c6_beit_hatfutsot_bh_multimedia_film_movie_mg"][0] == "MediaGalleries"
+
+def test_get_media_galleries():
+    parent_doc = next(parse_clearmash_documents(MockClearmashApi().get_documents([164467])))
+    films_multimedia_child_docs = MockClearmashChildDocuments.get_for_doc(parent_doc)["_c6_beit_hatfutsot_bh_films_multimedia"]
+    child_doc = films_multimedia_child_docs[0]
+    media_galleries = MockClearmashMediaGalleries.get_for_child_doc(child_doc)
+    film_movie_media_galleries = media_galleries["_c6_beit_hatfutsot_bh_multimedia_film_movie_mg"]
+    assert len(film_movie_media_galleries) == 1
+    gallery = film_movie_media_galleries[0]
+    assert isinstance(gallery, MockClearmashMediaGalleries)
+    assert sorted(gallery.gallery_main_document.keys()) == ["doc", "document_id", "template_reference"]
+    assert len(gallery.gallery_items) == 1
+    gallery_item = gallery.gallery_items[0]
+    assert gallery_item["MediaUrls"] == {'MPEG4': '00000000115f42d69144c7d2bb86466f',
+                                         'Ogg': '00000000084b4d59833e5f3b87917cc0',
+                                         'WebM': '000000007cd549cbaba47038cc570d2b'}
+    assert gallery_item["PosterImageUrl"] == "~~st~~8165e9e84f9946a8bf1f3535eaf172f9.jpg"
+    assert gallery_item["__type"] == "MediaGalleryVideoItem:http://www.clearmash.com/api/v5/services.Documents"
+    assert sorted(gallery_item["ItemDocument"].keys()) == ["doc", "document_id", "template_reference"]

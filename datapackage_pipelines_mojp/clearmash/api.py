@@ -48,31 +48,123 @@ def parse_clearmash_document(document, reference_datasource_items):
                 parsed_doc[field["Id"]] = value
         else:
             raise Exception("Unknown field: {}".format(k))
-    for k in document:
-        fields_type = k[7:]
-        for field in document[k]:
-            value = (fields_type, field)
-            if fields_type == "RelatedDocuments":
-                entity_id = parsed_doc["entity_id"]
-                first_page_of_results = field["FirstPageOfReletedDocumentsIds"]
-                value = ClearmashRelatedDocuments(first_page_of_results, entity_id, field["Id"])
-                parsed_doc[field["Id"]] = value
-    
     return parsed_doc
 
-class ClearmashRelatedDocuments():
+def parse_clearmash_document_field(document_field):
+    allowed_groups = document_field.pop("AllowedGroups")
+    value = document_field.pop("Value")
+    assert len(document_field) == 0, "unknown attributes in document field: {}".format(document_field.keys())
+    assert len(document_field) == 0, "cannot handle allowed_groups in document field: {}".format(allowed_groups)
+    return {"document_id": value.pop("Id"),
+            "template_reference": value.pop("TemplateReference"),
+            "doc": parse_clearmash_document(value, [])}
+
+class ClearmashRelatedDocuments(object):
     
-    def __init__(self, first_page_of_results, entity_id, field_name):
-        self.first_page_of_results = first_page_of_results
+    def __init__(self, first_page_results, entity_id, field_name, total_count):
+        self.first_page_results = first_page_results
+        self.total_count = total_count
         self.entity_id = entity_id
         self.field_name = field_name
-    
-    def first_page_results(self):
-        return self.first_page_of_results
+
+    def get_clearmash_api(self):
+        return ClearmashApi()
+
+    @classmethod
+    def get_for_doc(cls, doc):
+        res = {}
+        entity_id = doc["item_id"]
+        for k,v in doc["parsed_doc"].items():
+            if isinstance(v, (tuple, list)) and len(v) == 2 and v[0] == "RelatedDocuments":
+                first_page = v[1]["FirstPageOfReletedDocumentsIds"]
+                field_name = v[1]["Id"]
+                total_count = v[1]["TotalItemsCount"]
+                res[field_name] = cls(first_page, entity_id, field_name, total_count)
+        return res
 
     def get_related_documents(self):
-        related_documents = ClearmashApi().get_document_related_docs_by_fields(self.entity_id, self.field_name)
-        return related_documents
+        if len(self.first_page_results) > 0:
+            related_documents = self.get_clearmash_api().get_document_related_docs_by_fields(self.entity_id,
+                                                                                             self.field_name)
+            return parse_clearmash_documents(related_documents)
+        else:
+            return []
+
+
+class ClearmashChildDocuments(object):
+
+    def __init__(self, parsed_doc, document_id, template_reference):
+        self.parsed_doc = parsed_doc
+        self.document_id = document_id
+        self.template_reference = template_reference
+
+    def get_clearmash_api(self):
+        return ClearmashApi()
+
+    @classmethod
+    def get_for_doc(cls, doc):
+        res = {}
+        for k, v in doc["parsed_doc"].items():
+            if isinstance(v, (tuple, list)) and len(v) == 2 and v[0] == "ChildDocuments":
+                field = v[1]
+                field_id = field.pop("Id")
+                res[field_id] = []
+                child_documents = field.pop("ChildDocuments")
+                assert len(field) == 0, "unknown attributes in ChildDocuments field: {}".format(field.keys())
+                for child_document in child_documents:
+                    child_doc = parse_clearmash_document_field(child_document)
+                    res[field_id].append(cls(child_doc["doc"],
+                                             child_doc["document_id"],
+                                             child_doc["template_reference"]))
+        return res
+
+class ClearmashMediaGalleries(object):
+
+    def __init__(self, field_id, gallery_items, gallery_main_document):
+        self.gallery_items = gallery_items
+        self.gallery_main_document = gallery_main_document
+        self.field_id = field_id
+
+    def get_clearmash_api(self):
+        return ClearmashApi()
+
+    @classmethod
+    def get_for_parsed_doc(cls, parsed_doc):
+        res = {}
+        for k, v in parsed_doc.items():
+            if isinstance(v, (tuple, list)) and len(v) == 2 and v[0] == "MediaGalleries":
+                field = v[1]
+                field_id = field.pop("Id")
+                res[field_id] = []
+                galleries = field.pop("Galleries")
+                assert len(field) == 0, "unknown attributes in MediaGalleries field: {}".format(field.keys())
+                for gallery in galleries:
+                    gallery_items = []
+                    for gallery_item in gallery.pop("GalleryItems"):
+                        media_urls = {}
+                        for k in list(gallery_item.keys()):
+                            if k.startswith("MediaUrl_"):
+                                v = gallery_item.pop(k)
+                                media_urls[k.replace("MediaUrl_", "")] = v
+                        item_document = gallery_item.pop("ItemDocument")
+                        gallery_items.append({
+                            "__type": gallery_item.pop("__type"),
+                            "ItemDocument": parse_clearmash_document_field(item_document),
+                            "PosterImageUrl": gallery_item.pop("PosterImageUrl"),
+                            "MediaUrls": media_urls
+                        })
+                        assert len(gallery_item) == 0
+                    gallery_main_document = parse_clearmash_document_field(gallery.pop("GalleryMainDocument"))
+                    assert len(gallery) == 0
+                    res[field_id].append(cls(field_id, gallery_items, gallery_main_document))
+        return res
+
+    @classmethod
+    def get_for_child_doc(cls, child_doc):
+        return cls.get_for_parsed_doc(child_doc.parsed_doc)
+
+
+
 class ClearmashApi(object):
 
     def __init__(self, token=None):
