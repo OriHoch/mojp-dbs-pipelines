@@ -1,6 +1,7 @@
 import json
 from datapackage_pipelines_mojp.clearmash.processors.download import ClearmashDownloadProcessor
 from datapackage_pipelines_mojp.clearmash.processors.convert import ClearmashConvertProcessor
+from datapackage_pipelines_mojp.clearmash.api import ClearmashRelatedDocuments
 from datapackage_pipelines_mojp.common.processors.sync import DBS_DOCS_TABLE_SCHEMA
 from .common import assert_processor, assert_conforms_to_dbs_schema, assert_conforms_to_schema
 from datapackage_pipelines_mojp.clearmash.constants import (CLEARMASH_SOURCE_ID, DOWNLOAD_TABLE_SCHEMA,
@@ -194,11 +195,14 @@ def test_doc_related():
                                                         settings=settings).spew()
     resource = list(next(resources))
     doc = resource[2]
-    assert doc["parsed_doc"]["_c6_beit_hatfutsot_bh_base_template_multimedia_photos"] == (
-    "RelatedDocuments", {'FirstPageOfReletedDocumentsIds': ['3a18b553fce24f5ba8a6aa9ef73416c5',
-                                                            '03ee32a9d8c04709a50077e43ba4d412',
-                                                            '1fb971955cd140a9ad65bb78ea6a2ad1'],
-                         'FirstPageParams_ArchiveFilter': 2,
-                         'FirstPageParams_ReverseOrder': False,
-                         'Id': '_c6_beit_hatfutsot_bh_base_template_multimedia_photos',
-                         'TotalItemsCount': 3})
+    related = doc["parsed_doc"]["_c6_beit_hatfutsot_bh_base_template_multimedia_photos"]
+    assert isinstance(related, ClearmashRelatedDocuments)
+
+    # (
+    # "RelatedDocuments", {'FirstPageOfReletedDocumentsIds': ['3a18b553fce24f5ba8a6aa9ef73416c5',
+    #                                                         '03ee32a9d8c04709a50077e43ba4d412',
+    #                                                         '1fb971955cd140a9ad65bb78ea6a2ad1'],
+    #                      'FirstPageParams_ArchiveFilter': 2,
+    #                      'FirstPageParams_ReverseOrder': False,
+    #                      'Id': '_c6_beit_hatfutsot_bh_base_template_multimedia_photos',
+    #                      'TotalItemsCount': 3})

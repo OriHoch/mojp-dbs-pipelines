@@ -2,7 +2,7 @@
     "Entities": [
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -56,7 +56,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "f61752d6005d45d089abe59f0c3612f0",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -106,7 +106,7 @@
                     {
                         "Id": "EntityLastPublishDate",
                         "Value": {
-                            "UtcTicks": 636297532049733376
+                            "UtcTicks": 636339876140499968
                         }
                     },
                     {
@@ -138,10 +138,23 @@
                 "Fields_Int64": [
                     {
                         "Id": "EntityViewsCount",
-                        "Value": 0
+                        "Value": 6
                     }
                 ],
                 "Fields_LocalizedHtml": [
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_bibliography",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "A. Weldler-Steinberg, Geschichte der Juden in der Schweiz (1966), 56-57, 103. <br/><br/>Encyclopedia Judaica"
+                            },
+                            {
+                                "ISO6391": "he",
+                                "Value": "\u05d0\u05e0\u05e6\u05d9\u05e7\u05dc\u05d5\u05e4\u05d3\u05d9\u05d4 \u05d9\u05d5\u05d3\u05d0\u05d9\u05e7\u05d4"
+                            }
+                        ]
+                    },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_description",
                         "Value": [
@@ -161,6 +174,15 @@
                             {
                                 "ISO6391": "en",
                                 "Value": "hasavot from Places"
+                            }
+                        ]
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_place_google_maps",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "<p><iframe allowfullscreen=\"\" frameborder=\"0\" height=\"450\" src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d43519.60695900464!2d6.907484803807026!3d47.021087200150944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478e0a19d552cd9b%3A0x235cc36855b66404!2sNeuch%C3%A2tel%2C+Switzerland!5e0!3m2!1sen!2sil!4v1498390440179\" style=\"border:0\" width=\"600\"></iframe></p>\n"
                             }
                         ]
                     }
@@ -263,10 +285,12 @@
                     },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_place_located_in",
-                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageOfReletedDocumentsIds": [
+                            "4b6f712d2bf644d9a0608f661d3d41b4"
+                        ],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
+                        "TotalItemsCount": 1
                     },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_place_locations",
@@ -292,7 +316,7 @@
                 ],
                 "Id": "65e99e43a7164999971d8336a53f335e",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
@@ -310,7 +334,7 @@
         },
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -364,7 +388,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "8b19eb08c1004949b5927ddb2698631a",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -414,7 +438,7 @@
                     {
                         "Id": "EntityLastPublishDate",
                         "Value": {
-                            "UtcTicks": 636297532295299968
+                            "UtcTicks": 636346742120466688
                         }
                     },
                     {
@@ -446,10 +470,23 @@
                 "Fields_Int64": [
                     {
                         "Id": "EntityViewsCount",
-                        "Value": 0
+                        "Value": 4
                     }
                 ],
                 "Fields_LocalizedHtml": [
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_bibliography",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "ROTH, ENGLAND, INDEX.<br/><br/>Encyclopedia Judaica (2007)"
+                            },
+                            {
+                                "ISO6391": "he",
+                                "Value": "\u05d0\u05e0\u05e6\u05d9\u05e7\u05dc\u05d5\u05e4\u05d3\u05d9\u05d4 \u05d9\u05d5\u05d3\u05d0\u05d9\u05e7\u05d4 (2007)"
+                            }
+                        ]
+                    },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_description",
                         "Value": [
@@ -469,6 +506,15 @@
                             {
                                 "ISO6391": "en",
                                 "Value": "hasavot from Places"
+                            }
+                        ]
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_place_google_maps",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "<p><iframe allowfullscreen=\"\" frameborder=\"0\" height=\"450\" src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d39932.285496415716!2d1.0487456853235286!3d51.27859234205036!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47d94ac50d832c89%3A0x9ef1e5533783f98a!2sCanterbury%2C+UK!5e0!3m2!1sen!2sil!4v1499077032131\" style=\"border:0\" width=\"600\"></iframe></p>\n"
                             }
                         ]
                     }
@@ -523,11 +569,12 @@
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_multimedia_photos",
                         "FirstPageOfReletedDocumentsIds": [
+                            "aa7f0fa3c54d44a1b8e59f695f921dd5",
                             "92e5a62105bc4813b61b3e702c0561d6"
                         ],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 1
+                        "TotalItemsCount": 2
                     },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_related_exhibition",
@@ -553,37 +600,7 @@
                         "TotalItemsCount": 1
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_place_located_in",
-                        "FirstPageOfReletedDocumentsIds": [
-                            "0097419026234f63b5f911f83cab7925"
-                        ],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 1
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
+                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -599,7 +616,37 @@
                         "TotalItemsCount": 1
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
+                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_place_located_in",
+                        "FirstPageOfReletedDocumentsIds": [
+                            "0097419026234f63b5f911f83cab7925"
+                        ],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 1
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -608,7 +655,7 @@
                 ],
                 "Id": "63078f969b9a4567a72fc2da409927a8",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
@@ -626,7 +673,7 @@
         },
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -680,7 +727,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "f50a3b5fa16b49a3b0bc5d1dcb843713",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -766,6 +813,19 @@
                     }
                 ],
                 "Fields_LocalizedHtml": [
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_bibliography",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "JUDAICA <br/>YAD VASHEM JERUSALEM 1976"
+                            },
+                            {
+                                "ISO6391": "he",
+                                "Value": "\u05e4\u05e0\u05e7\u05e1 \u05e7\u05d4\u05d9\u05dc\u05d5\u05ea \u05d4\u05d5\u05e0\u05d2\u05e8\u05d9\u05d4,  \u05d9\u05d3 \u05d5\u05e9\u05dd, \u05d9\u05e8\u05d5\u05e9\u05dc\u05d9\u05dd, 1975"
+                            }
+                        ]
+                    },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_description",
                         "Value": [
@@ -938,7 +998,7 @@
                 ],
                 "Id": "8e52c640ed3c4e57bc27b1385f71850a",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
@@ -956,7 +1016,7 @@
         },
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -1010,7 +1070,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "061db8eefccf435193cfc99011ac4b05",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -1182,21 +1242,21 @@
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
+                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
+                        "Id": "_c6_beit_hatfutsot_bh_place_personality_birth",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
+                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -1212,21 +1272,21 @@
                         "TotalItemsCount": 1
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_place_personality_birth",
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -1235,7 +1295,7 @@
                 ],
                 "Id": "c5a300be088042209c2a677f19146e73",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
@@ -1253,7 +1313,7 @@
         },
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -1307,7 +1367,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "be26050124c64cc3afcea09931dd1360",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -1393,6 +1453,19 @@
                     }
                 ],
                 "Fields_LocalizedHtml": [
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_bibliography",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "List, Miriam Hajnal<br/><br/>http://www.iajgsjewishcemeteryproject.org/czech-republic/hluboka-nad-vltavou.html"
+                            },
+                            {
+                                "ISO6391": "he",
+                                "Value": "\u05de\u05e7\u05d5\u05e8\u05d5\u05ea, \u05de\u05e8\u05d9\u05dd \u05d4\u05d9\u05d9\u05e0\u05dc"
+                            }
+                        ]
+                    },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_description",
                         "Value": [
@@ -1485,13 +1558,6 @@
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_personality",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
@@ -1514,10 +1580,12 @@
                     },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_place_located_in",
-                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageOfReletedDocumentsIds": [
+                            "84392d6d0a2948c7b6d7fea314e98c6a"
+                        ],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
+                        "TotalItemsCount": 1
                     },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_place_locations",
@@ -1539,11 +1607,18 @@
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
                         "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_personality",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
                     }
                 ],
                 "Id": "84c5df8bf87a4b62bc1f30ca83e2f711",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
@@ -1561,7 +1636,7 @@
         },
         {
             "Acl": null,
-            "Changeset": 707207,
+            "Changeset": 6219337,
             "Document": {
                 "Fields_Boolean": [
                     {
@@ -1615,7 +1690,7 @@
                                     "Fields_RelatedDocuments": [],
                                     "Id": "10acff254fd94b239d3e4721cb19b75b",
                                     "TemplateReference": {
-                                        "ChangesetId": 774,
+                                        "ChangesetId": 5135675,
                                         "TemplateId": "_c6_beit_hatfutsot_bh_base_template_old_number_child"
                                     }
                                 }
@@ -1701,6 +1776,19 @@
                     }
                 ],
                 "Fields_LocalizedHtml": [
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_bibliography",
+                        "Value": [
+                            {
+                                "ISO6391": "en",
+                                "Value": "LIST, MIRIAM HAJNAL"
+                            },
+                            {
+                                "ISO6391": "he",
+                                "Value": "\u05de\u05e7\u05d5\u05e8\u05d5\u05ea, \u05de\u05e8\u05d9\u05dd \u05d4\u05d9\u05d9\u05e0\u05dc"
+                            }
+                        ]
+                    },
                     {
                         "Id": "_c6_beit_hatfutsot_bh_base_template_description",
                         "Value": [
@@ -1800,35 +1888,7 @@
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_place_located_in",
-                        "FirstPageOfReletedDocumentsIds": [],
-                        "FirstPageParams_ArchiveFilter": 2,
-                        "FirstPageParams_ReverseOrder": false,
-                        "TotalItemsCount": 0
-                    },
-                    {
-                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
+                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -1842,7 +1902,37 @@
                         "TotalItemsCount": 0
                     },
                     {
-                        "Id": "_c6_beit_hatfutsot_bh_place_personality_death",
+                        "Id": "_c6_beit_hatfutsot_bh_place_locations",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_place_located_in",
+                        "FirstPageOfReletedDocumentsIds": [
+                            "9d1056c026a3488ea74d03891a02cbe7"
+                        ],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 1
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_source",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_recieve_unit",
+                        "FirstPageOfReletedDocumentsIds": [],
+                        "FirstPageParams_ArchiveFilter": 2,
+                        "FirstPageParams_ReverseOrder": false,
+                        "TotalItemsCount": 0
+                    },
+                    {
+                        "Id": "_c6_beit_hatfutsot_bh_base_template_related_place",
                         "FirstPageOfReletedDocumentsIds": [],
                         "FirstPageParams_ArchiveFilter": 2,
                         "FirstPageParams_ReverseOrder": false,
@@ -1851,7 +1941,7 @@
                 ],
                 "Id": "3a2c33c4c0c64103915337ca03bffbf9",
                 "TemplateReference": {
-                    "ChangesetId": 774,
+                    "ChangesetId": 5135675,
                     "TemplateId": "_c6_beit_hatfutsot_bh_place"
                 }
             },
