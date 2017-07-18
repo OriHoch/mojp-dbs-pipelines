@@ -1,4 +1,4 @@
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_error_response_content, parse_clearmash_document
+from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_error_response_content, parse_clearmash_document, ClearmashRelatedDocuments
 import os, json
 from requests.exceptions import HTTPError
 from datapackage_pipelines_mojp.clearmash.constants import WEB_CONTENT_FOLDER_ID_Place
@@ -57,6 +57,16 @@ class MockClearmashApi(ClearmashApi):
         else:
             raise Exception("invalid url: {}".format(url))
 
+class MockClearmashRelatedDocuments(ClearmashRelatedDocuments):
+    
+    def __init__(self, first_page_of_results, entity_id, field_name):
+        self.first_page_of_results = first_page_of_results
+        self.entity_id = entity_id
+        self.field_name = field_name
+
+    def get_mock_related_documents(self):
+        related_documents = MockClearmashApi().get_document_related_docs_by_fields(self.entity_id, self.field_name)
+        return related_documents
 
 def test_invalid_call():
     try:
@@ -110,10 +120,10 @@ def test_get_web_document_system_folder_places():
     items = document_folder.pop("Items")
     assert len(document_folder) == 0
     assert len(folders) == 0
-    assert len(items) == 6241
+    assert len(items) == 6541
     item = items[6240]
-    assert item["Id"] == 265694
-    assert item["Name"] == "גאבצ'יקובו"
+    assert item["Id"] == 258770
+    assert item["Name"] == "מזוצ'אט"
     assert {item["Id"]: item["Name"] for item in items[:5]} == {115325: 'נשאטל',
                                                                 115353: 'קנטרברי',
                                                                 115365: "קצ'קמט",
@@ -129,10 +139,10 @@ def test_get_documents_places():
     assert len(reference_datasource_items) == 6
     first_entity = entities[0]
     assert first_entity.pop("Acl") == None
-    assert first_entity.pop("Changeset") == 707207
+    assert first_entity.pop("Changeset") == 6219337
     document = first_entity.pop("Document")
     template_reference = document.pop("TemplateReference")
-    assert template_reference.pop("ChangesetId") == 774  # the template changeset id
+    assert template_reference.pop("ChangesetId") == 5135675  # the template changeset id
     assert template_reference.pop("TemplateId") == "_c6_beit_hatfutsot_bh_place"
     assert len(template_reference) == 0
     metadata = first_entity.pop("Metadata")
@@ -143,7 +153,7 @@ def test_get_documents_places():
     assert len(first_entity) == 0
     assert document.pop("Id") == "65e99e43a7164999971d8336a53f335e"
     parsed_doc = parse_clearmash_document(document, reference_datasource_items)
-    assert len(parsed_doc) == 35
+    assert len(parsed_doc) == 37
     assert parsed_doc["entity_has_pending_changes"] == False
     assert parsed_doc["is_archived"] == False
     assert parsed_doc["is_deleted"] == False
@@ -161,3 +171,19 @@ def test_get_related_docs_of_item():
     photo_url = related["Entities"][1]["Document"]["Fields_ChildDocuments"][2]["ChildDocuments"][0]["Value"]["Fields_MediaGalleries"][0]["Galleries"][0]["GalleryItems"][0]["ItemDocument"]["Value"]["Fields_LocalizedText"][1]["Value"][0]["Value"]
     assert photo_id == 123737
     assert photo_url == "~~st~~c72ca946fa684845b566949b38e35506.JPG"
+
+def test_get_documents():
+    res = MockClearmashApi()._wcm_api_call("/Documents/Get", {'entitiesIds': [115353]})
+    entity_document = res["Entities"][0]["Document"]
+    related_documents = entity_document["Fields_RelatedDocuments"]
+    for i in related_documents:
+        if i["Id"] == "_c6_beit_hatfutsot_bh_base_template_multimedia_photos":
+            first_related = i["FirstPageOfReletedDocumentsIds"]
+    assert first_related == ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
+    # first_page_of_results = ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
+    related = MockClearmashRelatedDocuments(first_related, 115353, "_c6_beit_hatfutsot_bh_base_template_multimedia_photos")
+    assert isinstance(related, MockClearmashRelatedDocuments)
+    assert related.first_page_results() == ['aa7f0fa3c54d44a1b8e59f695f921dd5', '92e5a62105bc4813b61b3e702c0561d6']
+    all_related = related.get_mock_related_documents()
+    first_doc = all_related["Entities"][1]
+    assert first_doc["Metadata"]["Id"] == 182346
