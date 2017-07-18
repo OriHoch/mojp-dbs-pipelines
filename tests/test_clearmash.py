@@ -184,25 +184,3 @@ def test_invalid_doc_should_not_be_processed():
                                                                       "path": "dbs_docs.csv",
                                                                       "schema": DBS_DOCS_TABLE_SCHEMA}]})
     assert len(list(next(resources))) == 0
-
-def test_doc_related():
-    settings = type("MockSettings", (object,), {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
-                                                "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX})
-    parameters = {"mock": True}
-    datapackage, resources = ClearmashDownloadProcessor(parameters=parameters,
-                                                        datapackage={"resources": []},
-                                                        resources=[],
-                                                        settings=settings).spew()
-    resource = list(next(resources))
-    doc = resource[2]
-    related = doc["parsed_doc"]["_c6_beit_hatfutsot_bh_base_template_multimedia_photos"]
-    assert isinstance(related, ClearmashRelatedDocuments)
-
-    # (
-    # "RelatedDocuments", {'FirstPageOfReletedDocumentsIds': ['3a18b553fce24f5ba8a6aa9ef73416c5',
-    #                                                         '03ee32a9d8c04709a50077e43ba4d412',
-    #                                                         '1fb971955cd140a9ad65bb78ea6a2ad1'],
-    #                      'FirstPageParams_ArchiveFilter': 2,
-    #                      'FirstPageParams_ReverseOrder': False,
-    #                      'Id': '_c6_beit_hatfutsot_bh_base_template_multimedia_photos',
-    #                      'TotalItemsCount': 3})
