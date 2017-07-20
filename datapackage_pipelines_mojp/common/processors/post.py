@@ -18,7 +18,7 @@ class Processor(BaseProcessor):
 
     def _skip_delete(self):
         skip_if = self._parameters.get("skip-delete-if")
-        if skip_if.get("environment"):
+        if skip_if and skip_if.get("environment"):
             for k in skip_if["environment"]:
                 if os.environ.get(k):
                     logging.info("skipping delete due to environment variable {}".format(k))
