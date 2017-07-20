@@ -42,7 +42,7 @@ docker-clean-start:
 docker-stop:
 	docker-compose stop
 
-docker-push
+docker-push:
 	docker tag mojp-dbs-pipelines orihoch/mojp-dbs-pipelines
 	docker push orihoch/mojp-dbs-pipelines
 
