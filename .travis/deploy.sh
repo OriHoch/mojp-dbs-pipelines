@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+if [ "${DOCKER_USERNAME}" != "" ] && [ "${DOCKER_PASSWORD}" != "" ]; then
+    echo "Docker deployment"
+    sudo apt-get update
+    sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-engine
+    docker --version
+    docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+    make docker-build
+    docker tag mojp-dbs-pipelines orihoch/mojp-dbs-pipelines
+    docker push orihoch/mojp-dbs-pipelines
+fi
+
+echo "Ssh deployment"
 if [ ! -f ./deploy-mojp-dbs-pipelines.id_rsa ]; then
     if [ "${encrypted_debe730ce1aa_key}" != "" ] && [ "${encrypted_debe730ce1aa_iv}" != "" ]; then
         echo "decrypting the deploy key"

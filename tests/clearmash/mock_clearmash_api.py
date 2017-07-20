@@ -1,4 +1,5 @@
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, ClearmashMediaGalleries, ClearmashChildDocuments, ClearmashRelatedDocuments
+from datapackage_pipelines_mojp import settings
 import os, json
 
 
@@ -29,6 +30,11 @@ class MockClearmashApi(ClearmashApi):
     @property
     def media_galleries(self):
         return MockClearmashMediaGalleries
+
+    def __init__(self, token=None):
+        if not settings.CLEARMASH_CLIENT_TOKEN:
+            token = "INVALID TOKEN"
+        super(MockClearmashApi, self).__init__(token)
 
     def _get_request_json(self, url, headers, post_data=None):
         if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Documents/Get":
