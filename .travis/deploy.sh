@@ -2,8 +2,6 @@
 
 if [ "${DOCKER_USERNAME}" != "" ] && [ "${DOCKER_PASSWORD}" != "" ]; then
     echo "Docker deployment"
-    sudo apt-get update
-    sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-engine
     docker --version
     docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
     make docker-build
@@ -22,10 +20,14 @@ else
     echo "deploy key already exists"
 fi
 
-# ssh requires private key to have limited permissions
-chmod 400 ./deploy-mojp-dbs-pipelines.id_rsa
+if [ -f ./deploy-mojp-dbs-pipelines.id_rsa ]; then
+    # ssh requires private key to have limited permissions
+    chmod 400 ./deploy-mojp-dbs-pipelines.id_rsa
 
-echo "deploying..."
-ssh -i ./deploy-mojp-dbs-pipelines.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no bhs@devapi.dbs.bh.org.il
+    echo "deploying..."
+    ssh -i ./deploy-mojp-dbs-pipelines.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no bhs@devapi.dbs.bh.org.il
+else
+    echo "no deploy key file, skipping ssh deployment"
+fi
 
 echo "OK"
