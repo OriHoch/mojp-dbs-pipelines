@@ -7,8 +7,7 @@ if [ "${DOCKER_USERNAME}" != "" ] && [ "${DOCKER_PASSWORD}" != "" ]; then
     docker --version
     docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
     make docker-build
-    docker tag mojp-dbs-pipelines orihoch/mojp-dbs-pipelines
-    docker push orihoch/mojp-dbs-pipelines
+    make docker-push
 fi
 
 echo "Ssh deployment"
