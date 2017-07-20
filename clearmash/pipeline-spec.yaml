@@ -57,6 +57,10 @@ post:
         resource: dbs-docs-sync-log
         all_items_query:
           source: clearmash
+        skip-delete-if:
+          environment:
+            - OVERRIDE_CLEARMASH_COLLECTIONS
+            - OVERRIDE_CLEARMASH_ITEM_IDS
     - run: dump.to_path
       parameters:
         out-path: ../data/clearmash/post

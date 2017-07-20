@@ -16,7 +16,7 @@ RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines
 
 ENV PYTHONUNBUFFERED 1
 
-RUN mkdir /mojp
+RUN mkdir -p /mojp/data
 WORKDIR /mojp
 ADD . /mojp/
 
@@ -24,3 +24,5 @@ ADD . /mojp/
 RUN pip install -e /mojp
 
 ENTRYPOINT ["/mojp/docker-run.sh"]
+
+VOLUME /mojp/data

@@ -10,10 +10,6 @@ services:
   #     #   host:docker
   #     - "56379:63679"
   app:
-    # for development - you can mount the host directory inside the docker
-    # that way code changes are reflected without having to rebuild
-    # volumes:
-    #   - .:/mojp
     environment:
       - "CLEARMASH_CLIENT_TOKEN="
       - "MOJP_ELASTICSEARCH_DB="
