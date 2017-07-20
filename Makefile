@@ -1,4 +1,4 @@
-.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop deploy
+.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop docker-push deploy
 
 DEPLOY_BRANCH ?= master
 
@@ -42,7 +42,11 @@ docker-clean-start:
 docker-stop:
 	docker-compose stop
 
+docker-push:
+	docker tag mojp-dbs-pipelines orihoch/mojp-dbs-pipelines
+	docker push orihoch/mojp-dbs-pipelines
+
 deploy:
 	git pull origin $(DEPLOY_BRANCH)
-	make docker-build
+	docker pull orihoch/mojp-dbs-pipelines
 	make docker-start

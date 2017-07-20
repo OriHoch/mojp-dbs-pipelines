@@ -1,14 +1,30 @@
-from itertools import chain
 from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines_mojp import settings as mojp_settings
-import logging
-import json
+from itertools import chain
 
 
 class BaseProcessor(object):
     """
     all mojp processor should extend this class
     it is pluggable into our unit tests to allow mocks and automated tests of processors
+    
+    it runs in 3 main modes, depending on the parameters it gets from the pipeline:
+    
+    adding a new resource:
+        parameters: add-resource = name of the resource to add
+        relevant methods: _get_schema = return the schema for the new resource
+                          _get_resource = yield the items for the new resource
+    
+    filtering an existing resource without changing schema:
+        parameters: resource = name of the resource to filter
+        relevant methods: _filter_row = filter each row of data
+                          _filter_resource = filter over the entire resource (calls _filter_row)
+    
+    filtering a resource and modifying the schema
+        parameters: input-resource = name of the input resource
+                    output-resource = name of the output resource
+        relevant methods: _get_schema = return the updated schema
+                          _filter_row / _filter_resource = filter over the resource and yield according to the new schema
     """
 
     def __init__(self, parameters, datapackage, resources, settings=None):
@@ -16,6 +32,16 @@ class BaseProcessor(object):
         self._datapackage = datapackage
         self._resources = resources
         self._settings = mojp_settings if not settings else settings
+        self._add_resource = None
+        self._input_resource = None
+        self._output_resource = None
+        if self._parameters.get("add-resource"):
+            self._input_resource = self._output_resource = self._add_resource = self._parameters["add-resource"]
+        elif self._parameters.get("resource"):
+            self._input_resource = self._output_resource = self._parameters["resource"]
+        else:
+            self._input_resource = self._parameters["input-resource"]
+            self._output_resource = self._parameters["output-resource"]
 
     @classmethod
     def main(cls):
@@ -29,90 +55,56 @@ class BaseProcessor(object):
         return self._datapackage, self._resources
 
     def _process(self, datapackage, resources):
-        return datapackage, resources
+        if self._add_resource:
+            datapackage["resources"].append({"name": self._add_resource,
+                                             "path": self._add_resource+".csv",
+                                             "schema": self._get_schema()})
+            return datapackage, chain(resources, [self._get_resource()])
+        else:
+            for resource_descriptor in datapackage["resources"]:
+                if self._is_matching_input_resource(resource_descriptor):
+                    self._filter_resource_descriptor(resource_descriptor)
+            return datapackage, self._filter_resources(datapackage, resources)
+
+    def _filter_resources(self, datapackage, resources):
+        for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
+            if self._is_matching_output_resource(resource_descriptor):
+                yield self._filter_resource(resource_descriptor, resource_data)
+
+    def _filter_resource_descriptor(self, resource_descriptor):
+        resource_descriptor.update(name=self._output_resource,
+                                   path=self._output_resource+".csv")
+        schema = self._get_schema()
+        if schema:
+            resource_descriptor.update(schema=schema)
+
+    @classmethod
+    def _get_schema(cls):
+        return None
+
+    def _is_matching_input_resource(self, resource_descriptor):
+        return resource_descriptor["name"] == self._input_resource
+
+    def _is_matching_output_resource(self, resource_descriptor):
+        return resource_descriptor["name"] == self._output_resource
+
+    def _filter_resource(self, resource_descriptor, resource_data):
+        for row in resource_data:
+            row = self._filter_row(row)
+            if row:
+                yield row
+
+    def _filter_row(self, row):
+        return row
+
+    def _get_resource(self):
+        pass
 
     def _get_settings(self, key=None, default=None):
         if key:
-            ret = getattr(self._settings, key, default)
-            if default is None and ret is None:
+            if default is None and not hasattr(self._settings, key):
                 raise Exception("unknown key: {}".format(key))
             else:
-                return ret
+                return getattr(self._settings, key, default)
         else:
             return self._settings
-
-
-class AddResourcesProcessor(BaseProcessor):
-
-    def _get_resource_descriptors(self):
-        return []
-
-    def _get_resources_iterator(self):
-        return ()
-
-    def _process(self, datapackage, resources):
-        datapackage["resources"] += self._get_resource_descriptors()
-        resources = chain(resources, self._get_resources_iterator())
-        return super(AddResourcesProcessor, self)._process(datapackage, resources)
-
-
-class FilterResourcesProcessor(BaseProcessor):
-
-    def _filter_datapackage(self, datapackage):
-        datapackage["resources"] = self._filter_resource_descriptors(datapackage["resources"])
-        return datapackage
-
-    def _filter_resource_descriptors(self, descriptors):
-        return [self._filter_resource_descriptor(descriptor) for descriptor in descriptors]
-
-    def _filter_resource_descriptor(self, descriptor):
-        return descriptor
-
-    def _filter_resources(self, resources, datapackage):
-        for i, resource in enumerate(resources):
-            resource_descriptor = datapackage["resources"][i]
-            yield self._filter_resource(resource, resource_descriptor)
-
-    def _filter_resource(self, resource, descriptor):
-        for row in resource:
-            try:
-                filtered_row = self._filter_row(row, descriptor)
-            except Exception:
-                logging.info(row)
-                raise
-            if filtered_row is not None:
-                yield filtered_row
-
-    def _filter_row(self, row, resource_descriptor):
-        return row
-
-    def _process(self, datapackage, resources):
-        datapackage = self._filter_datapackage(datapackage)
-        resources = self._filter_resources(resources, datapackage)
-        return super(FilterResourcesProcessor, self)._process(datapackage, resources)
-
-
-class BaseDownloadProcessor(AddResourcesProcessor):
-
-    def _get_resource_descriptors(self):
-        return [{"name": self._get_source_name(),
-                 "path": "{}.csv".format(self._get_source_name()),
-                 "schema": self._get_schema()}]
-
-    def _get_resources_iterator(self):
-        if self._parameters.get("mock"):
-            return [self._mock_download()]
-        else:
-            return [self._download()]
-
-    def _get_schema(self):
-        raise NotImplementedError()
-
-    def _download(self):
-        raise NotImplementedError()
-
-    def _mock_download(self):
-        raise NotImplementedError()
-
-    def _get_source_name(self):
-        raise NotImplementedError()

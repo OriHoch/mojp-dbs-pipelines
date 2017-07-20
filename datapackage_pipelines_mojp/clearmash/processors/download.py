@@ -1,70 +1,66 @@
-from datapackage_pipelines_mojp.common.processors.base_processors import BaseDownloadProcessor
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, MockClearMashApi, parse_clearmash_documents
-from datapackage_pipelines_mojp.clearmash.constants import (CONTENT_FOLDERS, DOWNLOAD_TABLE_SCHEMA,
-                                                            ITEM_IDS_BUFFER_LENGTH)
-import os
-from datapackage_pipelines_mojp.common.constants import PIPELINES_ES_DOC_TYPE
-import elasticsearch
-import elasticsearch.helpers
-import logging
+from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
+from datapackage_pipelines_mojp.common.utils import get_elasticsearch
+from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents
+from datapackage_pipelines_mojp.clearmash.constants import DOWNLOAD_PROCESSOR_BUFFER_LENGTH
 
 
-class ClearmashDownloadProcessor(BaseDownloadProcessor):
+class Processor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
-        super(ClearmashDownloadProcessor, self).__init__(*args, **kwargs)
-        self._es = elasticsearch.Elasticsearch(self._get_settings("MOJP_ELASTICSEARCH_DB"))
-        self._idx = self._get_settings("MOJP_ELASTICSEARCH_INDEX")
+        super(Processor, self).__init__(*args, **kwargs)
+        self._es, self._idx = get_elasticsearch(self._settings)
+        self._rows_buffer = []
+
+    @classmethod
+    def _get_schema(cls):
+        return {"fields": [{"name": "document_id", "type": "string",
+                            "description": "some sort of internal GUID"},
+                           {"name": "item_id", "type": "integer",
+                            "description": "the item id as requested from the folder"},
+                           {"name": "item_url", "type": "string",
+                            "description": "url to view the item in CM"},
+                           {"name": "collection", "type": "string",
+                            "description": "common dbs docs collection string"},
+                           {"name": "template_changeset_id", "type": "integer",
+                            "description": "I guess it's the id of template when doc was saved"},
+                           {"name": "template_id", "type": "string",
+                            "description": "can help to identify the item type"},
+                           {"name": "changeset", "type": "integer",
+                            "description": ""},
+                           {"name": "metadata", "type": "object",
+                            "description": "full metadata"},
+                           {"name": "parsed_doc", "type": "object",
+                            "description": "all other attributes"}]}
+
+    def _filter_resource(self, resource_descriptor, resource_data):
+        for row in resource_data:
+            self._rows_buffer.append(row)
+            yield from self._handle_rows_buffer()
+        yield from self._handle_rows_buffer(force_flush=True)
+
+    def _handle_rows_buffer(self, force_flush=False):
+        if force_flush or len(self._rows_buffer) > DOWNLOAD_PROCESSOR_BUFFER_LENGTH:
+            yield from self._flush_rows_buffer()
+
+    def _check_override_item(self, row):
+        override_item_ids = self._get_settings("OVERRIDE_CLEARMASH_ITEM_IDS")
+        if not override_item_ids:
+            return True
+        else:
+            return str(row["item_id"]) in override_item_ids
+
+    def _flush_rows_buffer(self):
+        item_ids = {row["item_id"]: row["collection"]
+                    for row in self._rows_buffer
+                    if self._check_override_item(row)}
+        self._rows_buffer = []
+        if len(item_ids.keys()) > 0:
+            for doc in parse_clearmash_documents(self._get_clearmash_api().get_documents(list(item_ids.keys()))):
+                doc["collection"] = item_ids[doc["item_id"]]
+                yield doc
 
     def _get_clearmash_api(self):
         return ClearmashApi()
 
-    def _get_mock_clearmash_api(self):
-        return MockClearMashApi()
-
-    def _get_source_name(self):
-        return "clearmash"
-
-    def _get_schema(self):
-        return DOWNLOAD_TABLE_SCHEMA
-
-    def _download(self, clearmash_api=None):
-        if not clearmash_api:
-            clearmash_api = self._get_clearmash_api()
-        if self._parameters.get("related"):
-            items = elasticsearch.helpers.scan(self._es, index=self._idx,
-                                               doc_type=PIPELINES_ES_DOC_TYPE, scroll=u"3h")
-            for item in items:
-                entity_id = item["_source"]["item_id"]
-                for k, v in item.items():
-                    if k.startswith("related_documents_"):
-                        field_id = k.replace("related_documents_", "")
-                        logging.info(entity_id)
-                        logging.info(field_id)
-                        logging.info(v)
-        elif self._parameters.get("folder_id") and os.environ.get("CLEARMASH_OVERRIDE_ITEM_IDS"):
-            self.item_ids_buffer = list(map(int, os.environ["CLEARMASH_OVERRIDE_ITEM_IDS"].split(",")))
-            folder = CONTENT_FOLDERS[self._parameters["folder_id"]]
-            yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
-        else:
-            for folder_id, folder in CONTENT_FOLDERS.items():
-                if self._parameters.get("folder_id", "") == "" or self._parameters["folder_id"] == folder_id:
-                    self.item_ids_buffer = []
-                    for item in clearmash_api.get_web_document_system_folder(folder_id)["Items"]:
-                        self.item_ids_buffer.append(item["Id"])
-                        yield from self._handle_item_ids_buffer(folder, clearmash_api)
-                    yield from self._handle_item_ids_buffer(folder, clearmash_api, force_flush=True)
-
-    def _mock_download(self):
-        yield from self._download(clearmash_api=self._get_mock_clearmash_api())
-
-    def _handle_item_ids_buffer(self, folder, clearmash_api, force_flush=False):
-        if force_flush or len(self.item_ids_buffer) > ITEM_IDS_BUFFER_LENGTH:
-            for item in parse_clearmash_documents(clearmash_api.get_documents(self.item_ids_buffer)):
-                item["collection"] = folder["collection"]
-                yield item
-            self.item_ids_buffer = []
-
-
 if __name__ == '__main__':
-    ClearmashDownloadProcessor.main()
+    Processor.main()

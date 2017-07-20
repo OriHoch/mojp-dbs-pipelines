@@ -48,23 +48,4 @@ CONTENT_FOLDERS = {
     WEB_CONTENT_FOLDER_ID_Photos: {"collection": common_constants.COLLECTION_PHOTOUNITS},
 }
 
-DOWNLOAD_TABLE_SCHEMA = {"fields": [{"name": "document_id", "type": "string",
-                                     "description": "some sort of internal GUID"},
-                                    {"name": "item_id", "type": "integer",
-                                     "description": "the item id as requested from the folder"},
-                                    {"name": "item_url", "type": "string",
-                                     "description": "url to view the item in CM"},
-                                    {"name": "collection", "type": "string",
-                                     "description": "common dbs docs collection string"},
-                                    {"name": "template_changeset_id", "type": "integer",
-                                     "description": "I guess it's the id of template when doc was saved"},
-                                    {"name": "template_id", "type": "string",
-                                     "description": "can help to identify the item type"},
-                                    {"name": "changeset", "type": "integer",
-                                     "description": ""},
-                                    {"name": "metadata", "type": "object",
-                                     "description": "full metadata"},
-                                    {"name": "parsed_doc", "type": "object",
-                                     "description": "all other attributes"}]}
-
-ITEM_IDS_BUFFER_LENGTH = 10
+DOWNLOAD_PROCESSOR_BUFFER_LENGTH = 10

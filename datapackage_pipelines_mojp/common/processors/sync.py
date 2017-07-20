@@ -1,66 +1,55 @@
 import json
-from elasticsearch import Elasticsearch, NotFoundError
-from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
-from datapackage_pipelines_mojp.settings import temp_loglevel, logging
-from datapackage_pipelines_mojp.common.constants import (ALL_KNOWN_COLLECTIONS, COLLECTION_UNKNOWN,
-                                                         SLUG_LANGUAGES_MAP, SUPPORTED_SUGGEST_LANGS,
-                                                         PIPELINES_ES_DOC_TYPE)
+from elasticsearch import NotFoundError
+from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
+from datapackage_pipelines_mojp.settings import temp_loglevel
+from datapackage_pipelines_mojp.common import constants
+from datapackage_pipelines_mojp.common.utils import get_elasticsearch
 import iso639
 from copy import deepcopy
 import logging
 from slugify import Slugify
 
-COLLECTION_FIELD_DESCRIPTION = "standard collection identifier (e.g. places / familyNames etc..). " \
-                               "must be related to one of the COLLECTION_? constants"
 
-
-DBS_DOCS_TABLE_SCHEMA = {"fields": [{"name": "source", "type": "string"},
-                                    {'name': 'id', 'type': 'string'},
-                                    {"name": "version", "type": "string",
-                                     "description": "source dependant field, used by sync process to detect document updates"},
-                                    {"name": "collection", "type": "string",
-                                        "description": COLLECTION_FIELD_DESCRIPTION},
-                                    {"name": "source_doc", "type": "object"},
-                                    {"name": "title", "type": "object",
-                                    "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
-                                    {"name": "title_he", "type": "string"},
-                                    {"name": "title_en", "type": "string"},
-                                    {"name": "content_html", "type": "object",
-                                     "description": "languages other then he/en, will be flattened on elasticsearch to content_html_LANG"},
-                                    {"name": "content_html_he", "type": "string"},
-                                    {"name": "content_html_en", "type": "string"},
-                                    {"name": "main_image_url", "type": "string",
-                                     "description": "url to the main image"},
-                                    {"name": "main_thumbnail_image_url", "type": "string",
-                                     "description": "url to the main thumbnail image"},
-                                    {"name": "related_documents", "type": "object",
-                                     "description": "related documents of different types (source-specific)"}]}
-
-DBS_DOCS_SYNC_LOG_TABLE_SCHAME = {"fields": [{"name": "source", "type": "string"},
-                                             {'name': 'id', 'type': 'string'},
-                                             {"name": "version", "type": "string",
-                                              "description": "source dependant field, used by sync process to detect document updates"},
-                                             {"name": "collection", "type": "string",
-                                                 "description": COLLECTION_FIELD_DESCRIPTION},
-                                             {"name": "sync_msg", "type": "string"}]}
-
-INPUT_RESOURCE_NAME = "dbs_docs"
-OUTPUT_RESOURCE_NAME = "dbs_docs_sync_log"
-
-
-class CommonSyncProcessor(FilterResourcesProcessor):
+class CommonSyncProcessor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
         super(CommonSyncProcessor, self).__init__(*args, **kwargs)
-        self._es = Elasticsearch(self._get_settings("MOJP_ELASTICSEARCH_DB"))
-        self._idx = self._get_settings("MOJP_ELASTICSEARCH_INDEX")
+        self._es, self._idx = get_elasticsearch(self._settings)
 
-    def _filter_resource_descriptor(self, descriptor):
-        if descriptor["name"] == INPUT_RESOURCE_NAME:
-            descriptor.update({"name": OUTPUT_RESOURCE_NAME,
-                               "path": "{}.csv".format(OUTPUT_RESOURCE_NAME),
-                               "schema": DBS_DOCS_SYNC_LOG_TABLE_SCHAME})
-        return descriptor
+    @classmethod
+    def _get_schema(cls):
+        return constants.DBS_DOCS_SYNC_LOG_TABLE_SCHEMA
+
+    def _filter_row(self, row):
+        if not self._pre_validate_row(row):
+            return None
+        else:
+            logging.info("processing row ({source}:{collection},{id}@{version}".format(
+                source=row.get("source"), collection=row.get("collection"),
+                version=row.get("version"), id=row.get("id")))
+            original_row = deepcopy(row)
+            try:
+                row = deepcopy(original_row)
+                source_doc = row.pop("source_doc")
+                new_doc = self._initialize_new_doc(row, source_doc)
+                self._populate_language_fields(new_doc, row)
+                self._populate_related_documents(new_doc, row)
+                self._add_title_related_fields(new_doc)
+                self._validate_collection(new_doc)
+                self._validate_slugs(new_doc)
+                with temp_loglevel(logging.ERROR):
+                    try:
+                        old_doc = self._es.get(index=self._idx, id="{}_{}".format(
+                            new_doc["source"], new_doc["source_id"]))["_source"]
+                    except NotFoundError:
+                        old_doc = None
+                if old_doc:
+                    return self._update_doc(new_doc, old_doc)
+                else:
+                    return self._add_doc(new_doc)
+            except Exception:
+                logging.exception("unexpected exception, row={}".format(original_row))
+                raise
 
     def _get_sync_response(self, doc, sync_msg):
         return {"source": doc["source"], "id": doc.get("source_id", doc.get("id")), "version": doc["version"],
@@ -68,7 +57,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _add_doc(self, new_doc):
         with temp_loglevel(logging.ERROR):
-            self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
+            self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
                            body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
         return self._get_sync_response(new_doc, "added to ES")
 
@@ -76,7 +65,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         if old_doc["version"] != new_doc["version"]:
             self._update_doc_slugs(new_doc, old_doc)
             with temp_loglevel(logging.ERROR):
-                self._es.index(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE,
+                self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
                                 id="{}_{}".format(
                                     new_doc["source"], new_doc["source_id"]),
                                 body=new_doc)
@@ -107,43 +96,6 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 if slug not in new_doc["slugs"]:
                     new_doc["slugs"].append(slug)
 
-    def _filter_row(self, row, resource_descriptor):
-        if resource_descriptor["name"] == "dbs_docs_sync_log":
-            if not self._pre_validate_row(row):
-                return None
-            else:
-                logging.info("processing row ({source}:{collection},{id}@{version}".format(
-                    source=row.get("source"), collection=row.get("collection"),
-                    version=row.get("version"), id=row.get("id")))
-                original_row = deepcopy(row)
-                try:
-                    row = deepcopy(original_row)
-                    source_doc = row.pop("source_doc")
-                    new_doc = self._initialize_new_doc(row, source_doc)
-                    self._populate_language_fields(new_doc, row)
-                    self._populate_related_documents(new_doc, row)
-                    self._add_title_related_fields(new_doc)
-                    self._validate_collection(new_doc)
-                    self._validate_slugs(new_doc)
-                    with temp_loglevel(logging.ERROR):
-                        try:
-                            old_doc = self._es.get(index=self._idx, id="{}_{}".format(
-                                new_doc["source"], new_doc["source_id"]))["_source"]
-                        except NotFoundError:
-                            old_doc = None
-                    if old_doc:
-                        return self._update_doc(new_doc, old_doc)
-                    else:
-                        return self._add_doc(new_doc)
-                except Exception:
-                    logging.exception("unexpected exception, "
-                                      "resource_descirptor={0}, "
-                                      "row={1}".format(resource_descriptor,
-                                                       original_row))
-                    raise
-        else:
-            return row
-
     def _pre_validate_row(self, row):
         content_html_he = row.get("content_html_he", "")
         content_html_en = row.get("content_html_en", "")
@@ -151,8 +103,8 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 or (content_html_en is not None and len(content_html_en) > 0))
 
     def _validate_collection(self, new_doc):
-        if "collection" not in new_doc or new_doc["collection"] not in ALL_KNOWN_COLLECTIONS:
-            new_doc["collection"] = COLLECTION_UNKNOWN
+        if "collection" not in new_doc or new_doc["collection"] not in constants.ALL_KNOWN_COLLECTIONS:
+            new_doc["collection"] = constants.COLLECTION_UNKNOWN
 
     def _initialize_new_doc(self, row, source_doc):
         # the source doc is used as the base for the final es doc
@@ -173,11 +125,11 @@ class CommonSyncProcessor(FilterResourcesProcessor):
         if title:
             collection = new_doc.get("collection", "")
             slug_parts = []
-            if collection in SLUG_LANGUAGES_MAP:
-                if lang in SLUG_LANGUAGES_MAP[collection]:
-                    slug_collection = SLUG_LANGUAGES_MAP[collection][lang]
+            if collection in constants.SLUG_LANGUAGES_MAP:
+                if lang in constants.SLUG_LANGUAGES_MAP[collection]:
+                    slug_collection = constants.SLUG_LANGUAGES_MAP[collection][lang]
                 else:
-                    slug_collection = SLUG_LANGUAGES_MAP[collection]["en"]
+                    slug_collection = constants.SLUG_LANGUAGES_MAP[collection]["en"]
             else:
                 slug_collection = None
             if new_doc["source"] != "clearmash" or slug_collection is None or lang not in ["en", "he"]:
@@ -212,7 +164,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
 
     def _ensure_slug_uniqueness(self, slug, doc):
         body = {"query": {"constant_score": {"filter": {"term": {"slugs": slug}}}}}
-        results = self._es.search(index=self._idx, doc_type=PIPELINES_ES_DOC_TYPE, body=body, ignore_unavailable=True)
+        results = self._es.search(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE, body=body, ignore_unavailable=True)
         for hit in results["hits"]["hits"]:
             if hit["_id"] != "{}_{}".format(doc["source"], doc["source_id"]):
                 return self._ensure_slug_uniqueness("{}-{}".format(slug, doc["source_id"]), doc)
@@ -227,7 +179,7 @@ class CommonSyncProcessor(FilterResourcesProcessor):
                 # slug
                 self._add_slug(new_doc, title, lang)
         # ensure there is a value for all suggest supported langs
-        for lang in SUPPORTED_SUGGEST_LANGS:
+        for lang in constants.SUPPORTED_SUGGEST_LANGS:
             val = new_doc.get("title_{}".format(lang), "")
             if val is None or len(val) < 1:
                 val = "_"
