@@ -38,7 +38,7 @@ class Processor(BaseProcessor):
     def _get_resource(self):
         override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         for folder_id, folder in CONTENT_FOLDERS.items():
-            if override_collections and folder["collection"] not in override_collections.split(","):
+            if override_collections and folder["collection"] not in override_collections:
                 continue
             yield from self._get_folder(folder_id, folder)
 

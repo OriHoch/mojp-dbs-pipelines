@@ -5,9 +5,14 @@ services:
     image: redis:alpine
   app:
     image: orihoch/mojp-dbs-pipelines
+    volumes:
+      - data-volume:/mojp/data
     depends_on:
       - redis
     environment:
       - "DPP_REDIS_HOST=redis"
     ports:
       - "5000:5000"
+
+volumes:
+  data-volume:

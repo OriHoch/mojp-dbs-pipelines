@@ -14,7 +14,7 @@ clean:
 	pip freeze | xargs pip uninstall -y || true
 
 docker-build:
-	docker build -t mojp-dbs-pipelines .
+	docker build -t orihoch/mojp-dbs-pipelines .
 
 docker-start:
 	docker-compose up -d
@@ -43,7 +43,6 @@ docker-stop:
 	docker-compose stop
 
 docker-push:
-	docker tag mojp-dbs-pipelines orihoch/mojp-dbs-pipelines
 	docker push orihoch/mojp-dbs-pipelines
 
 deploy:
