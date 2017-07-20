@@ -1,0 +1,62 @@
+entity-ids:
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: clearmash-entity-ids
+    - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
+      parameters:
+        add-resource: entity-ids
+        skip-failure-collections:
+          - photoUnits
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/clearmash/entity-ids
+
+sync:
+  dependencies:
+    - pipeline: ./clearmash/entity-ids
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: clearmash-sync
+    - run: load_resource
+      parameters:
+        resource: entity-ids
+        url: ../data/clearmash/entity-ids/datapackage.json
+    - run: stream_remote_resources
+    - run: ..datapackage_pipelines_mojp.clearmash.processors.download
+      parameters:
+        input-resource: entity-ids
+        output-resource: entities
+    - run: ..datapackage_pipelines_mojp.clearmash.processors.convert
+      parameters:
+        input-resource: entities
+        output-resource: dbs-docs
+    - run: ..datapackage_pipelines_mojp.common.processors.sync
+      parameters:
+        input-resource: dbs-docs
+        output-resource: dbs-docs-sync-log
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/clearmash/sync
+
+post:
+  dependencies:
+    - pipeline: ./clearmash/sync
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: clearmash-post
+    - run: load_resource
+      parameters:
+        resource: dbs-docs-sync-log
+        url: ../data/clearmash/sync/datapackage.json
+    - run: stream_remote_resources
+    - run: ..datapackage_pipelines_mojp.common.processors.post
+      parameters:
+        resource: dbs-docs-sync-log
+        all_items_query:
+          source: clearmash
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/clearmash/post

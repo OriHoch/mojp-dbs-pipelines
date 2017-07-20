@@ -1,24 +1,26 @@
-from datapackage_pipelines_mojp.common.processors.sync import (DBS_DOCS_TABLE_SCHEMA,
-                                                               INPUT_RESOURCE_NAME as DBS_DOCS_RESOURCE_NAME)
+from datapackage_pipelines_mojp.common.constants import DBS_DOCS_TABLE_SCHEMA
 from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents, ClearmashRelatedDocuments
-from datapackage_pipelines_mojp.common.processors.base_processors import FilterResourcesProcessor
+from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, ClearmashRelatedDocuments
+from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.common.utils import populate_iso_639_language_field
 import logging
 
 
-class ClearmashConvertProcessor(FilterResourcesProcessor):
+class Processor(BaseProcessor):
 
-    def __init__(self, *args, **kwargs):
-        super(ClearmashConvertProcessor, self).__init__(*args, **kwargs)
-        self.clearmash_api = ClearmashApi()
+    @classmethod
+    def _get_schema(self):
+        return DBS_DOCS_TABLE_SCHEMA
 
-    def _filter_resource_descriptor(self, descriptor):
-        if descriptor["name"] == "clearmash":
-            descriptor.update(name=DBS_DOCS_RESOURCE_NAME,
-                              path="{}.csv".format(DBS_DOCS_RESOURCE_NAME),
-                              schema=DBS_DOCS_TABLE_SCHEMA)
-        return descriptor
+    def _filter_resource(self, resource_descriptor, resource_data):
+        for cm_row in resource_data:
+            dbs_row = self._cm_row_to_dbs_row(cm_row)
+            if self._doc_show_filter(dbs_row):
+                self._add_related_documents(dbs_row, cm_row)
+                yield dbs_row
+
+    def _get_clearmash_api(self):
+        return ClearmashApi()
 
     def _doc_show_filter(self, dbs_row):
         working_status = dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_working_status', [{}])[0].get("en")
@@ -30,22 +32,15 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
             logging.info("item '{}' failed show filter '{}'/'{}'/'{}'".format(dbs_row["id"], working_status, rights, display_status))
             return False
 
-    def _filter_row(self, row, resource_descriptor):
-        if resource_descriptor["name"] == DBS_DOCS_RESOURCE_NAME:
-            dbs_row = self._cm_row_to_dbs_row(row)
-            if self._doc_show_filter(dbs_row):
-                return dbs_row
-            else:
-                return None
-        else:
-            return row
-
     def _get_related_documents(self, cm_row):
         res = {}
-        for field_id, related_documents in ClearmashRelatedDocuments.get_for_doc(cm_row).items():
+        for field_id, related_documents in self._get_clearmash_api().related_documents.get_for_doc(cm_row).items():
             res[field_id] = ["{}_{}".format(CLEARMASH_SOURCE_ID, item["item_id"])
                              for item in related_documents.get_related_documents()]
         return res
+
+    def _add_related_documents(self, dbs_row, cm_row):
+        dbs_row["related_documents"] = self._get_related_documents(cm_row)
 
     def _cm_row_to_dbs_row(self, cm_row):
         parsed_doc = cm_row["parsed_doc"]
@@ -55,8 +50,7 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
                    "version": "{}-{}".format(cm_row["changeset"], cm_row["document_id"]),
                    "collection": self._get_collection(cm_row),
                    "main_image_url": "",
-                   "main_thumbnail_image_url": "",
-                   "related_documents": self._get_related_documents(cm_row)}
+                   "main_thumbnail_image_url": ""}
         populate_iso_639_language_field(dbs_row, "title", parsed_doc.get("entity_name"))
         populate_iso_639_language_field(dbs_row, "content_html", parsed_doc.get("_c6_beit_hatfutsot_bh_base_template_description"))
         return dbs_row
@@ -66,4 +60,4 @@ class ClearmashConvertProcessor(FilterResourcesProcessor):
 
 
 if __name__ == '__main__':
-    ClearmashConvertProcessor.main()
+    Processor.main()

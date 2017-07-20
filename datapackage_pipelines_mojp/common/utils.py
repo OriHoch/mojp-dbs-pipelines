@@ -1,4 +1,5 @@
 import iso639
+from elasticsearch import Elasticsearch
 
 KNOWN_LANGS = iso639.languages.part1.keys()
 
@@ -18,3 +19,7 @@ def populate_iso_639_language_field(dbs_row, attribute_prefix, source_lang_dict)
             else:
                 dbs_row[attribute_prefix][lang] = title
     dbs_row[attribute_prefix] = dbs_row[attribute_prefix]
+
+
+def get_elasticsearch(settings):
+    return Elasticsearch(settings.MOJP_ELASTICSEARCH_DB), settings.MOJP_ELASTICSEARCH_INDEX

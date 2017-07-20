@@ -2,9 +2,7 @@ from .constants import WCM_BASE_URL, FOLDER_TYPE_WebDocumentSystemFolder
 from datapackage_pipelines_mojp import settings
 import requests
 from pyquery import PyQuery as pq
-import os, json
-from itertools import cycle
-from copy import deepcopy
+import json
 import logging
 
 
@@ -98,9 +96,6 @@ class ClearmashChildDocuments(object):
         self.document_id = document_id
         self.template_reference = template_reference
 
-    def get_clearmash_api(self):
-        return ClearmashApi()
-
     @classmethod
     def get_for_doc(cls, doc):
         res = {}
@@ -124,9 +119,6 @@ class ClearmashMediaGalleries(object):
         self.gallery_items = gallery_items
         self.gallery_main_document = gallery_main_document
         self.field_id = field_id
-
-    def get_clearmash_api(self):
-        return ClearmashApi()
 
     @classmethod
     def get_for_parsed_doc(cls, parsed_doc):
@@ -167,9 +159,23 @@ class ClearmashMediaGalleries(object):
 
 class ClearmashApi(object):
 
+    @property
+    def related_documents(self):
+        return ClearmashRelatedDocuments
+
+    @property
+    def child_documents(self):
+        return ClearmashChildDocuments
+
+    @property
+    def media_galleries(self):
+        return ClearmashMediaGalleries
+
     def __init__(self, token=None):
         if not token:
             token = settings.CLEARMASH_CLIENT_TOKEN
+        if not token:
+            raise Exception("Must have a valid clearmash token to use ClearmashApi")
         self._token = token
 
     def get_bh_root_folder(self):
@@ -218,50 +224,12 @@ class ClearmashApi(object):
         else:
             res = requests.get(url, headers=headers)
         res.raise_for_status()
-        return res.json()
+        try:
+            return res.json()
+        except json.JSONDecodeError as e:
+            logging.exception(e)
+            raise Exception("Failed to parse json from clearmash response: {}".format(res.content))
 
     def _get_headers(self):
         return {"ClientToken": self._token,
                 "Content-Type": "application/json"}
-
-
-class MockClearMashApi(ClearmashApi):
-
-    def __init__(self):
-        super(MockClearMashApi, self).__init__(token="FAKE INVALID TOKEN")
-
-    def get_web_document_system_folder(self, folder_id):
-        return {"Folders": [],
-                "Items": [{"Id": (folder_id*100+i)} for i in range(1, 50)]}
-
-    def get_documents(self, entity_ids):
-        response = {}
-        with open(os.path.join(os.path.dirname(__file__), "mock_data",
-                               "clearmash-api-documents-get-115325-115353-115365-115371-115388-265694.json")) as f:
-            mock_response = json.load(f)
-        response["ReferencedDatasourceItems"] = mock_response["ReferencedDatasourceItems"]
-        response["Entities"] = []
-        infinite_entities = cycle(mock_response["Entities"])
-        for entity_id in entity_ids:
-            folder_id = int(entity_id / 100)
-            entity = deepcopy(next(infinite_entities))
-            entity["Document"].update(Id="foobarbaz-{}".format(entity_id),
-                                      TemplateReference={"ChangesetId": folder_id*3,
-                                                         "TemplateId": "fake-template-{}".format(folder_id)})
-            entity["Metadata"].update(Id=entity_id, Url="http://foo.bar.baz/{}".format(entity_id))
-            response["Entities"].append(entity)
-        return response
-
-    def _get_mock_request_filename(self, url, headers, post_data):
-        if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Document/ByRelationField":
-            return "clearmash-api-get-related-docs-by-item-field-220590.json"
-        else:
-            return None
-
-    def _get_request_json(self, url, headers, post_data=None):
-        filename = self._get_mock_request_filename(url, headers, post_data)
-        if not filename:
-            return super(MockClearMashApi, self)._get_request_json(url, headers, post_data)
-        else:
-            with open(os.path.join(os.path.dirname(__file__), "mock_data", filename)) as f:
-                return json.load(f)
