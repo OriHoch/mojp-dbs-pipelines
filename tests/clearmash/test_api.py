@@ -1,5 +1,5 @@
 from .mock_clearmash_api import MockClearmashApi, MockClearmashRelatedDocuments, MockClearmashChildDocuments, MockClearmashMediaGalleries
-from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_error_response_content, parse_clearmash_document, parse_clearmash_documents
+from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_error_response_content, parse_clearmash_document, parse_clearmash_documents, ClearmashStartDate
 from datapackage_pipelines_mojp.clearmash.constants import WEB_CONTENT_FOLDER_ID_Place
 import pytest
 from requests.exceptions import HTTPError
@@ -152,3 +152,26 @@ def test_get_media_galleries():
     assert gallery_item["PosterImageUrl"] == "~~st~~8165e9e84f9946a8bf1f3535eaf172f9.jpg"
     assert gallery_item["__type"] == "MediaGalleryVideoItem:http://www.clearmash.com/api/v5/services.Documents"
     assert sorted(gallery_item["ItemDocument"].keys()) == ["doc", "document_id", "template_reference"]
+
+def test_get_dates():
+    fuzzy = {"Fields_FuzzyDate": [{
+                                    "Id": "_c6_beit_hatfutsot_bh_photos_photo_period_fid",
+                                    "Value": {
+                                        "__type": "FuzzyDateTreeExpression:http://www.clearmash.com/api/v5/services.Documents",
+                                        "Value": {
+                                            "__type": "ImplicitFuzzyDate:http://www.clearmash.com/api/v5/services",
+                                            "Edge": 1,
+                                            "Offset": 3,
+                                            "ReducedAccuracyDate": {
+                                                "__type": "DayAccuracyDate:http://www.clearmash.com/api/v5/services",
+                                                "DayNumberOfMonth": 24,
+                                                "MonthNumberOfYear": 4,
+                                                "YearNumber": 1947
+                                            },
+                                            "Subrange": 1
+                                        }
+                                    }
+                                }]}
+    all_fuzz = fuzzy["Fields_FuzzyDate"][0]
+    obj = ClearmashStartDate("_c6_beit_hatfutsot_bh_photos_photo_period_fid", all_fuzz)
+    assert obj.get_iso_date() == '1947-04-24T00:00:00Z'
