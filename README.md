@@ -15,8 +15,10 @@ This project provides pipelines that sync data from multiple external sources to
 ### Running the full pipelines environment using docker
 
 * Install Docker and Docker Compose (refer to Docker guides for your OS)
-* cp docker-compose.override.yml.example docker-compose.override.yml
-* modify relevant settings
+* `cp docker-compose.override.yml.example.full docker-compose.override.yml`
+* edit docker-compose.override.yml and modify settings (most likely you will need to set the CLEARMASH_CLIENT_TOKEN
+* `make docker-pull`
+* `make docker-build-all`
 * `make docker-start`
 
 This will provide:

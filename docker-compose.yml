@@ -1,54 +1,7 @@
 version: '3'
 
 services:
-  redis:
-    image: redis:alpine
-    networks:
-      - mojp
-  db:
-    image: sameersbn/postgresql:9.6-2
-    depends_on:
-      - redis
-    networks:
-      - mojp
-    ports:
-      - "15432:5432"
-    environment:
-      - "PG_PASSWORD=123456"
-    volumes:
-      - .data-docker/postgresql:/var/lib/postgresql
-  elasticsearch:
-    image: orihoch/mojp-elasticsearch
-    depends_on:
-      - db
-    networks:
-      - mojp
-    ports:
-      - "19200:9200"
-    volumes:
-      - .data-docker/elasticsearch:/usr/share/elasticsearch/data
-  elasticsearch-index:
-    image: orihoch/mojp-dbs-back
-    depends_on:
-      - elasticsearch
-    networks:
-      - mojp
-    command: scripts/elasticsearch_create_index.py --host elasticsearch --index mojp --ensure
   app:
     image: orihoch/mojp-dbs-pipelines
-    depends_on:
-      - elasticsearch-index
-    networks:
-      - mojp
     ports:
       - "5000:5000"
-    environment:
-      - "DPP_REDIS_HOST=redis"
-      - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
-      - "MOJP_ELASTICSEARCH_DB=elasticsearch:9200"
-      - "MOJP_ELASTICSEARCH_INDEX=mojp"
-    volumes:
-      - .data-docker:/mojp/data
-
-networks:
-  mojp:
