@@ -6,39 +6,37 @@ Pipelines for data sync of Jewish data sources to the DB of The Museum of The Je
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
 
+
 ## Overview
 
 This project provides pipelines that sync data from multiple external sources to the [MoJP](http://dbs.bh.org.il/) Elasticsearch DB.
 
-## Downloading
 
-```
-$ wget https://github.com/Beit-Hatfutsot/mojp-dbs-pipelines/archive/master.zip -O mojp-dbs-pipelines.zip
-$ unzip mojp-dbs-pipelines.zip
-$ cd mojp-dbs-pipelines
-```
+### Running the full pipelines environment using docker
 
-## Installation
+* Install Docker and Docker Compose (refer to Docker guides for your OS)
+* cp docker-compose.override.yml.example docker-compose.override.yml
+* modify relevant settings
+* `make docker-start`
 
-Docker is used to get the full environment that runs the sync pipelines. see [README-DOCKER](README-DOCKER.md) for more details, tips and common problems with Docker
+This will provide:
 
-* [Install Docker](https://docs.docker.com/engine/installation/) (tested with version 17.03)
-* [Install Docker Compose](https://docs.docker.com/compose/install/)
+* Pipelines dashboard: http://localhost:5000/
+* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
+* Elasticsearch server: localhost:19200
+* Data files under: .data-docker/
 
-Once you have docker you can run the following to build and start the app:
+After every change in the code you should run `make docker-build && make docker-start`
 
-* `make docker-clean-start`
 
-see [README-DOCKER](README-DOCKER.md) for more details
+### Running the pipelines locally
 
-## Usage
+Make sure you have Python 3.6 in a virtualenv
 
-* go to: http://localhost:5000/
-* the datapackage-pipelines framework runs the pipelines automatically according to the pipelines configurations
+* `make install`
+* `make test`
+* `dpp`
 
-## Development
-
-Check out the [contribution guide](CONTRIBUTING.md)
 
 ## Available Data Sources
 
@@ -49,4 +47,5 @@ Clearmash is A CMS system which is used by MoJP for the MoJP own data
 Clearmash exposes an [API](https://bh.clearmash.com/API/V5/Services/) to get the data
 
 relevant links and documentation (clearmash support site requires login)
+
 * [overview of the services and api urls](https://www.clearmash.com/skn/c7/Support/e1043/External_Resources_API__Server_API_)

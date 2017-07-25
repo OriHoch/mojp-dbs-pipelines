@@ -19,6 +19,3 @@ deploy:
   script: .travis/deploy.sh
   on:
     branch: master
-sudo: required
-services:
-  - docker

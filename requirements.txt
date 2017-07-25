@@ -1,0 +1,5 @@
+datapackage-pipelines==1.0.21
+python-dotenv==0.6.4
+elasticsearch==5.4.0
+pyquery==1.2.17
+iso-639==0.4.5

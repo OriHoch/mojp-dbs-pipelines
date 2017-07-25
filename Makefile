@@ -1,22 +1,28 @@
-.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop docker-push deploy
+.PHONY: install install-optimized test docker-pull docker-build docker-start docker-clean docker-logs docker-logs-f docker-restart docker-clean-start docker-stop docker-push deploy
 
 DEPLOY_BRANCH ?= master
 
 install:
-	pip install --upgrade pip setuptools
+	pip install -r requirements.txt
 	pip install --upgrade -e .[develop]
 
-test:
-	tox -r
+install-optimized:
+	pip install .
 
-clean:
-	pip uninstall -y mojp_dbs_pipelines || true
-	pip freeze | xargs pip uninstall -y || true
+test:
+	tox
+
+docker-pull:
+	docker pull orihoch/mojp-dbs-pipelines
+	docker pull orihoch/mojp-elasticsearch
+	docker pull orihoch/mojp-dbs-back
 
 docker-build:
 	docker build -t orihoch/mojp-dbs-pipelines .
 
 docker-start:
+	mkdir -p .data-docker/elasticsearch
+	mkdir -p .data-docker/postgresql
 	docker-compose up -d
 
 docker-logs:
@@ -28,6 +34,10 @@ docker-logs-f:
 docker-restart:
 	docker-compose restart
 	make docker-logs-f
+
+docker-clean:
+	make docker-stop || true
+	docker-compose rm -f
 
 docker-clean-start:
 	docker-compose down
@@ -47,5 +57,5 @@ docker-push:
 
 deploy:
 	git pull origin $(DEPLOY_BRANCH)
-	docker pull orihoch/mojp-dbs-pipelines
+	make docker-build
 	make docker-start

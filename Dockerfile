@@ -16,13 +16,16 @@ RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines
 
 ENV PYTHONUNBUFFERED 1
 
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+
 RUN mkdir -p /mojp/data
 WORKDIR /mojp
 ADD . /mojp/
 
 # install the mojp-dbs-pipelines package
-RUN pip install -e /mojp
+RUN make install-optimized
 
-ENTRYPOINT ["/mojp/docker-run.sh"]
+ENTRYPOINT ["/mojp/docker-entrypoint.sh"]
 
 VOLUME /mojp/data

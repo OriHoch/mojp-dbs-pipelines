@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-if [ "${DOCKER_USERNAME}" != "" ] && [ "${DOCKER_PASSWORD}" != "" ]; then
-    echo "Docker deployment"
-    docker --version
-    docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-    make docker-build
-    make docker-push
-fi
-
 echo "Ssh deployment"
 if [ ! -f ./deploy-mojp-dbs-pipelines.id_rsa ]; then
     if [ "${encrypted_debe730ce1aa_key}" != "" ] && [ "${encrypted_debe730ce1aa_iv}" != "" ]; then

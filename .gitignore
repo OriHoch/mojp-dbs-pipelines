@@ -106,3 +106,4 @@ ENV/
 
 # Other
 *.ede
+.data-docker
