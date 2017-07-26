@@ -2,6 +2,7 @@ from datapackage_pipelines_mojp.common.processors.base_processors import BasePro
 import json
 import logging
 import time
+import os
 
 
 class Processor(BaseProcessor):
@@ -12,23 +13,24 @@ class Processor(BaseProcessor):
     @classmethod
     def _get_schema(cls):
         # TODO change scheme
-        return {"fields": [{"name": "source", "type": "string"}, {"name": "collection", "type": "string"},
-            {"name": "name", "type": "string"},
-            {"name": "main_image_url_aws_s3", "type": "string"},
-            {"name": "description", "type": "string"},
-            {"name": "id", "type": "integer"},
-            {"name": "date_taken", "type": "string"},
-            {"name": "parsed_doc", "type": "object"}]}
-
+        return {"fields": [{"name": "name", "type": "string"},
+                           {"name": "main_image_url", "type": "string",
+                               "description": "stored in aws S3"},
+                           {"name": "desc", "type": "string"},
+                           {"name": "id", "type": "integer",
+                            "description": "enumerated ID given when scraped"},
+                           {"name": "approximate_date_taken", "type": "string",
+                            "description": "Date of the photo, extracted from name. "},
+                           {"name": "pictures", "type": "array", "description": "List of image IDs created by AWS S3"}]}
 
     def _get_resource(self):
-        all_items_file = open("/Users/libi/mojp-dbs-pipelines/datapackage_pipelines_mojp/bagnowka/processors/bagnowka_all.json", "r")
-        all_docs = json.load(all_items_file)
-        for item_data in all_docs:
-            new = all_docs[item_data]
-            doc = self.download(new)
-            logging.info("hello world")
-            yield doc
+        with open(os.path.join(os.path.dirname(__file__), "bagnowka_all.json")) as f:
+            all_docs = json.load(f)
+            for item_data in all_docs:
+                new = all_docs[item_data]
+                doc = self.download(new)
+                logging.info("hello world")
+                yield doc
 
     def download(self, item_data):
         new_doc = {}
@@ -37,17 +39,16 @@ class Processor(BaseProcessor):
         description = item_data["UnitText1"]["En"]
         entity_id = item_data["UnitId"]
         date_taken = item_data["PeriodDesc"]["En"]
+        pictures = item_data["Pictures"]
+        new_doc["pictures"] = pictures
         new_doc["name"] = title
-        new_doc["source"] = "Bagnowka"
-        new_doc["collection"] = "photoUnits"
-        new_doc["main_image_url_aws_s3"] = main_image_url
-        new_doc["description"] = description
+        new_doc["main_image_url"] = main_image_url
+        new_doc["desc"] = description
         new_doc["id"] = int(entity_id)
-        new_doc["date_taken"] = date_taken
-        new_doc["parsed_doc"] = item_data
+        new_doc["approximate_date_taken"] = date_taken
 
         return new_doc
-        
+
 
 if __name__ == '__main__':
     Processor.main()
