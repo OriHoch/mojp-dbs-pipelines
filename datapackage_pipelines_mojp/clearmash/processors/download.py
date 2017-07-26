@@ -11,6 +11,7 @@ class Processor(BaseProcessor):
         self._rows_buffer = []
         self._override_item_ids = self._parameters.get("override-item-ids")
         if self._override_item_ids:
+            self._override_item_ids = self._override_item_ids.split(",")
             logging.info("using override-item-ids from parameters: {}".format(self._override_item_ids))
         else:
             self._override_item_ids = self._get_settings("OVERRIDE_CLEARMASH_ITEM_IDS")
@@ -51,7 +52,7 @@ class Processor(BaseProcessor):
             yield from self._flush_rows_buffer()
 
     def _check_override_item(self, row):
-        if not self._override_item_ids or str(row["item_id"]) in self._override_item_ids.split(","):
+        if not self._override_item_ids or str(row["item_id"]) in self._override_item_ids:
             return True
         else:
             logging.info("item_id {} not in override item ids".format(row["item_id"]))
