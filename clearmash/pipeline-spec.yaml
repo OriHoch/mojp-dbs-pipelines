@@ -46,7 +46,7 @@ download-new-entities:
         load-table: clearmash-entity-ids
     - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
       parameters:
-        resource: entities
+        resource: entity-ids
         table: clearmash-entities
         id-column: item_id
         id-field: item_id
