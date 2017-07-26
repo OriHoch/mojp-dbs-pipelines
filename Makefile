@@ -29,6 +29,8 @@ docker-build-all:
 docker-start:
 	mkdir -p .data-docker/elasticsearch
 	mkdir -p .data-docker/postgresql
+	mkdir -p .data-docker/redis
+	mkdir -p .data-docker/.cache
 	docker-compose up -d
 
 docker-logs:
