@@ -1,12 +1,16 @@
 from datapackage_pipelines_mojp.clearmash.processors.download import Processor as ClearmashDownloadProcessor
-from .mock_clearmash_api import MockClearmashApi
-from ..common import assert_conforms_to_schema, get_mock_settings
+from tests.clearmash.mock_clearmash_api import MockClearmashApi
+from tests.common import assert_conforms_to_schema, get_mock_settings
 
 
 class MockClearmashDownloadProcessor(ClearmashDownloadProcessor):
 
     def _get_clearmash_api(self):
         return MockClearmashApi()
+
+if __name__ == "__main__":
+    MockClearmashDownloadProcessor.main()
+
 
 def assert_dict(actual, expected):
     keys = expected.pop("keys", None)

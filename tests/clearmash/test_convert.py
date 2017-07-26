@@ -32,7 +32,7 @@ def test_clearmash_convert():
                               "id": "115306",
                               "source": "clearmash",
                               "version": "6468918-f91ea044052746a2903d6ee60d9b374b",
-                              "related_documents": {'_c6_beit_hatfutsot_bh_base_template_family_name': [], '_c6_beit_hatfutsot_bh_base_template_multimedia_movies': [], '_c6_beit_hatfutsot_bh_base_template_multimedia_music': [], '_c6_beit_hatfutsot_bh_base_template_multimedia_photos': [], '_c6_beit_hatfutsot_bh_base_template_related_exhibition': [], '_c6_beit_hatfutsot_bh_base_template_related_musictext': [], '_c6_beit_hatfutsot_bh_base_template_related_personality': [], '_c6_beit_hatfutsot_bh_base_template_related_place': [], '_c6_beit_hatfutsot_bh_base_template_related_recieve_unit': [], '_c6_beit_hatfutsot_bh_base_template_source': []},
+                              "related_documents": {},
                               "main_image_url": "",
                               "main_thumbnail_image_url": "",
                               "keys": ['source_doc']})

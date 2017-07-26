@@ -1,7 +1,7 @@
 from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines_mojp import settings as mojp_settings
 from itertools import chain
-
+from datapackage_pipelines_mojp.common.db import get_session, MetaData
 
 class BaseProcessor(object):
     """
@@ -23,7 +23,7 @@ class BaseProcessor(object):
     filtering a resource and modifying the schema
         parameters: input-resource = name of the input resource
                     output-resource = name of the output resource
-        relevant methods: _get_schema = return the updated schema
+        relevant methods: _get_schema = return the updated schema (optional, can be ommitted if output resource has the same schema)
                           _filter_row / _filter_resource = filter over the resource and yield according to the new schema
     """
 
@@ -70,6 +70,7 @@ class BaseProcessor(object):
         for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
             if self._is_matching_output_resource(resource_descriptor):
                 yield self._filter_resource(resource_descriptor, resource_data)
+        self._process_cleanup()
 
     def _filter_resource_descriptor(self, resource_descriptor):
         resource_descriptor.update(name=self._output_resource,
@@ -108,3 +109,28 @@ class BaseProcessor(object):
                 return getattr(self._settings, key, default)
         else:
             return self._settings
+
+    @property
+    def db_session(self):
+        if not hasattr(self, "_db_session"):
+            self._db_session = self._get_new_db_session()
+        return self._db_session
+
+    def db_commit(self):
+        self.db_session.commit()
+        delattr(self, "_db_session")
+        delattr(self, "_db_meta")
+
+    @property
+    def db_meta(self):
+        if not hasattr(self, "_db_meta"):
+            self._db_meta = MetaData(bind=self.db_session.connection())
+            self._db_meta.reflect()
+        return self._db_meta
+
+    def _get_new_db_session(self):
+        return get_session()
+
+    def _process_cleanup(self):
+        if hasattr(self, "_db_session"):
+            self.db_commit()

@@ -23,6 +23,7 @@ docker-build:
 docker-build-all:
 	make docker-build
 	docker build -t orihoch/mojp-elasticsearch dockers/elasticsearch
+	docker build -t orihoch/mojp-kibana dockers/kibana
 	docker build -t orihoch/mojp-dbs-back https://github.com/beit-hatfutsot/dbs-back.git
 
 docker-start:

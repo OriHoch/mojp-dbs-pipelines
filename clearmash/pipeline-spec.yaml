@@ -1,66 +1,193 @@
 entity-ids:
+  # downloads all the entity ids from the clearmash folders (AKA collections)
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: clearmash-entity-ids
     - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
       parameters:
         add-resource: entity-ids
-        skip-failure-collections:
-          - photoUnits
     - run: dump.to_path
       parameters:
         out-path: ../data/clearmash/entity-ids
 
-sync:
+entity-ids-update-db:
+  # load new entity_ids to the DB
   dependencies:
-    - pipeline: ./clearmash/entity-ids
+    - datapackage: data/clearmash/entity-ids/datapackage.json
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: clearmash-sync
     - run: load_resource
       parameters:
         resource: entity-ids
         url: ../data/clearmash/entity-ids/datapackage.json
-    - run: stream_remote_resources
+    # filter out any entity_ids which already exist in the table
+    - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
+      parameters:
+        resource: entity-ids
+        table: clearmash-entity-ids
+        id-column: item_id
+        id-field: item_id
+    # appends the new entity ids to DB
+    - run: dump.to_sql
+      parameters:
+        tables:
+          clearmash-entity-ids:
+            resource-name: entity-ids
+            mode: append
+
+download-new-entities:
+  # downloads only new entities (which don't have a corresponding row in clearmash-entities)
+  # dumps to path
+  dependencies:
+    - pipeline: ./clearmash/entity-ids-update-db
+  pipeline:
+    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+      parameters:
+        add-resource: entity-ids
+        datapackage: ../data/clearmash/entity-ids/datapackage.json
+        load-resource: entity-ids
+        load-table: clearmash-entity-ids
+    - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
+      parameters:
+        resource: entities
+        table: clearmash-entities
+        id-column: item_id
+        id-field: item_id
     - run: ..datapackage_pipelines_mojp.clearmash.processors.download
       parameters:
         input-resource: entity-ids
         output-resource: entities
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/clearmash/download-new-entities
+
+download-related-entities:
+  # downloads related entities
+  # uses logic that reduces number of API calls but might result in not having all related items (e.g. only the first page)
+  # other pipelines should deal with full syncing of all related items
+  dependencies:
+    # run it after new entities were synced to ES - as the download of related items takes a long time
+    - pipeline: ./clearmash/new-entities-sync
+  pipeline:
+    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+      parameters:
+        add-resource: entities
+        datapackage: ../data/clearmash/download-new-entities/datapackage.json
+        load-resource: entities
+        load-table: clearmash-entities
+    # gets all the document ids from related fields in the source entry
+    # makes the call to get related fields only when needed
+    - run: ..datapackage_pipelines_mojp.clearmash.processors.download_related
+      parameters:
+        input-resource: entities
+        output-resource: related-entities
+        related-documents:
+          table: clearmash-entities
+          document-id-column: document_id
+          only-download-new: true
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/clearmash/download-related-documents
+
+entities-update-db:
+  # load all downloaded entities (new and related) to the clearmash-entities table
+  dependencies:
+    - datapackage: data/clearmash/download-new-entities/datapackage.json
+  pipeline:
+    - run: ..datapackage_pipelines_mojp.common.processors.load_resources
+      parameters:
+        add-resource: entities
+        load-resources:
+          - resource: entities
+            url: ../data/clearmash/download-new-entities/datapackage.json
+          - resource: related-entities
+            url: ../data/clearmash/download-related-documents/datapackage.json
+    - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
+      parameters:
+        resource: entities
+        table: clearmash-entities
+        id-column: item_id
+        id-field: item_id
+    # add some fields to be available in the entities table
+    - run: ..datapackage_pipelines_mojp.common.processors.add_fields
+      parameters:
+        input-resource: entities
+        output-resource: entities
+        fields:
+          - name: last_downloaded
+            type: datetime
+            value: now
+          - name: last_synced
+            type: datetime
+            value:
+          - name: hours_to_next_sync
+            type: integer
+            value: 0
+    - run: dump.to_sql
+      parameters:
+        tables:
+          clearmash-entities:
+            resource-name: entities
+            mode: append
+
+new-entities-sync:
+  # sync the new entities to elasticsearch
+  dependencies:
+    - pipeline: ./clearmash/entities-update-db
+  pipeline:
+    # load new entities only
+    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+      parameters:
+        add-resource: entities
+        datapackage: ../data/clearmash/download-new-entities/datapackage.json
+        load-resource: entities
+        load-table: clearmash-entities
+        where: "hours_to_next_sync=0"
+    # update the db with last synced time, this ensures items will not be synced again as new items (even if they fail)
+    - run: ..datapackage_pipelines_mojp.common.processors.update_db
+      parameters:
+        resource: entities
+        table: clearmash-entities
+        id-column: item_id
+        id-field: item_id
+        fields:
+          last_synced: datetime-now
+          hours_to_next_sync: 5
+    # filters out items which are not for display and converts to common dbs schema for syncing to ES
+    # uses the entities table to get related document ids (doesn't make additional API calls for related docs)
     - run: ..datapackage_pipelines_mojp.clearmash.processors.convert
       parameters:
         input-resource: entities
         output-resource: dbs-docs
+        related-documents:
+          table: clearmash-entities
+          item-id-column: item_id
+          document-id-column: document_id
+    # sync to elasticsearch
     - run: ..datapackage_pipelines_mojp.common.processors.sync
       parameters:
         input-resource: dbs-docs
         output-resource: dbs-docs-sync-log
     - run: dump.to_path
       parameters:
-        out-path: ../data/clearmash/sync
+        out-path: ../data/clearmash/new-entities-sync
 
-post:
-  dependencies:
-    - pipeline: ./clearmash/sync
-  pipeline:
-    - run: add_metadata
-      parameters:
-        name: clearmash-post
-    - run: load_resource
-      parameters:
-        resource: dbs-docs-sync-log
-        url: ../data/clearmash/sync/datapackage.json
-    - run: stream_remote_resources
-    - run: ..datapackage_pipelines_mojp.common.processors.post
-      parameters:
-        resource: dbs-docs-sync-log
-        all_items_query:
-          source: clearmash
-        skip-delete-if:
-          environment:
-            - OVERRIDE_CLEARMASH_COLLECTIONS
-            - OVERRIDE_CLEARMASH_ITEM_IDS
-    - run: dump.to_path
-      parameters:
-        out-path: ../data/clearmash/post
+# disable post for now, let's try getting all items first
+#post:
+#  dependencies:
+#    - pipeline: ./clearmash/new-entities-sync
+#  pipeline:
+#    - run: load_resource
+#      parameters:
+#        resource: dbs-docs-sync-log
+#        url: ../data/clearmash/sync/datapackage.json
+#    - run: stream_remote_resources
+#    - run: ..datapackage_pipelines_mojp.common.processors.post
+#      parameters:
+#        resource: dbs-docs-sync-log
+#        all_items_query:
+#          source: clearmash
+#        skip-delete-if:
+#          environment:
+#            - OVERRIDE_CLEARMASH_COLLECTIONS
+#            - OVERRIDE_CLEARMASH_ITEM_IDS
+#    - run: dump.to_path
+#      parameters:
+#        out-path: ../data/clearmash/post

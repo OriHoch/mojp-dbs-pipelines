@@ -31,6 +31,9 @@ services:
     # you can use the following command to delete and recreate the elasticsearch index
     # command: scripts/elasticsearch_create_index.py --host elasticsearch --index mojp --ensure --force
   app:
+    # uncomment the following line to disable the app, allowing you to use the infrastructure
+    # you can use the .env.example.full file to connect to the docker services
+    # command: echo "app is disabled, only using the infrastructure to test locally"
     depends_on:
       - elasticsearch-index
     environment:
@@ -42,3 +45,11 @@ services:
       - "CLEARMASH_CLIENT_TOKEN="
     volumes:
       - .data-docker:/mojp/data
+
+  # optionally - run a kibana instance to review the data in elasticsearch
+  # kibana:
+  #   image: orihoch/mojp-kibana
+  #   depends_on:
+  #     - elasticsearch
+  #   ports:
+  #     - "15601:5601"

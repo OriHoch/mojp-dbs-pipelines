@@ -1,0 +1,52 @@
+entity-ids:
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: clearmash-entity-ids
+    - run: test_add_entity_ids
+      parameters:
+        add-resource: entity-ids
+    - run: dump.to_path
+      parameters:
+        out-path: ../../data/clearmash/entity-ids
+
+
+download-new-entities:
+  pipeline:
+    - run: ...datapackage_pipelines_mojp.common.processors.load_sql_resource
+      parameters:
+        add-resource: entity-ids
+        datapackage: ../../data/clearmash/entity-ids/datapackage.json
+        load-resource: entity-ids
+        load-table: clearmash-entity-ids
+    - run: test_download
+      parameters:
+        input-resource: entity-ids
+        output-resource: entities
+        # a selection of 3 items from each collection - to allow the mock prcoessor to use a cahced response
+        override-item-ids: "115306,115316,115321,115325,115353,115365,115414,115800,115851,115318,115323,115348,115301,115303,115304"
+    - run: dump.to_path
+      parameters:
+        out-path: ../../data/clearmash/download-new-entities
+
+
+download-related-entities:
+  # downloads related entities
+  pipeline:
+    - run: ...datapackage_pipelines_mojp.common.processors.load_sql_resource
+      parameters:
+        add-resource: entities
+        datapackage: ../../data/clearmash/download-new-entities/datapackage.json
+        load-resource: entities
+        load-table: clearmash-entities
+    # gets all the document ids from related fields in the source entry
+    # makes the call to get related fields only when needed
+    - run: test_download_related
+      parameters:
+        input-resource: entities
+        output-resource: related-entities
+        # 1 item from each collection - to allow the mock prcoessor to use a cahced response
+        override-item-ids: "115353,115414,115301,115318,115321"
+    - run: dump.to_path
+      parameters:
+        out-path: ../../data/clearmash/download-related-documents

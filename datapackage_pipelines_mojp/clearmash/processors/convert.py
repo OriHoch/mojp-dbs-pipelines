@@ -33,11 +33,39 @@ class Processor(BaseProcessor):
             return False
 
     def _get_related_documents(self, cm_row):
-        res = {}
-        for field_id, related_documents in self._get_clearmash_api().related_documents.get_for_doc(cm_row).items():
-            res[field_id] = ["{}_{}".format(CLEARMASH_SOURCE_ID, item["item_id"])
-                             for item in related_documents.get_related_documents()]
-        return res
+        related_documents_config = self._parameters.get("related-documents")
+        if related_documents_config:
+            table = self.db_meta.tables.get(related_documents_config["table"])
+            if table is not None:
+                item_id_col = getattr(table.c, related_documents_config["item-id-column"])
+                document_id_col = getattr(table.c, related_documents_config["document-id-column"])
+                # aggregate all the document ids from all the fields - to allow fetching them from DB in one query
+                all_document_ids = []
+                # we also build this res which is similar to the res we will return but with document ids instead of item id
+                # later we will convert known document ids to item ids
+                document_id_res = {}
+                for field_id, related_documents in self._get_clearmash_api().related_documents.get_for_doc(cm_row).items():
+                    document_id_res[field_id] = []
+                    for document_id in related_documents.first_page_results:
+                        document_id_res[field_id].append(document_id)
+                        if document_id not in all_document_ids:
+                            all_document_ids.append(document_id)
+                if len(all_document_ids) > 0:
+                    rows = self.db_session\
+                        .query(item_id_col, document_id_col)\
+                        .filter(document_id_col.in_(all_document_ids))\
+                        .all()
+                    item_ids = {row[1]: row[0] for row in rows}
+                    res = {}
+                    for field_id, related_document_ids in document_id_res.items():
+                        related_item_ids = []
+                        for document_id in related_document_ids:
+                            if document_id in item_ids:
+                                related_item_ids.append(item_ids[document_id])
+                        if len(related_item_ids) > 0:
+                            res[field_id] = ["{}_{}".format(CLEARMASH_SOURCE_ID, item_id) for item_id in related_item_ids]
+                    return res
+        return {}
 
     def _add_related_documents(self, dbs_row, cm_row):
         dbs_row["related_documents"] = self._get_related_documents(cm_row)

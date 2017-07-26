@@ -1,12 +1,16 @@
 from datapackage_pipelines_mojp.clearmash.processors.add_entity_ids import Processor as AddEntityIdsProcessor
-from .mock_clearmash_api import MockClearmashApi
-from ..common import get_mock_settings, assert_conforms_to_schema
+from tests.clearmash.mock_clearmash_api import MockClearmashApi
+from tests.common import get_mock_settings, assert_conforms_to_schema
 
 
 class MockAddEntityIdsProcessor(AddEntityIdsProcessor):
 
     def _get_clearmash_api(self):
         return MockClearmashApi()
+
+if __name__ == "__main__":
+    MockAddEntityIdsProcessor.main()
+
 
 def test_clearmash_add_entity_ids():
     settings = get_mock_settings(OVERRIDE_CLEARMASH_COLLECTIONS="",
