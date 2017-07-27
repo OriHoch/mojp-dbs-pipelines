@@ -3,6 +3,7 @@ python:
   - 3.6
 install:
   - cp .travis/docker-compose.override.yml docker-compose.override.yml
+  - bin/docker/pull.sh
   - bin/docker/build_tests.sh
 script:
   - bin/docker/run_tests.sh
