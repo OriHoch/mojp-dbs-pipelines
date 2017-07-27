@@ -10,10 +10,11 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - /data/mojp/pipelines/redis:/data
+      - redis:/data
     deploy:
         replicas: 1
-        restart_policy: none
+        restart_policy:
+          condition: none
 
   db:
     build:
@@ -25,13 +26,17 @@ services:
     environment:
       - "POSTGRES_PASSWORD="
     volumes:
-      - /data/mojp/pipelines/db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
     deploy:
         replicas: 1
-        restart_policy: none
+        restart_policy:
+          condition: none
 
   app:
     build: .
+    image: mojp/pipelines-app
+    ports:
+      - "5000:5000"
     # command: echo "app is disabled"
     depends_on:
       - db
@@ -43,8 +48,15 @@ services:
       - "MOJP_ELASTICSEARCH_INDEX=next-mojp-dev"
       - "CLEARMASH_CLIENT_TOKEN="
     volumes:
-      - /data/mojp/pipelines:/mojp/data
-      - /data/mojp/pipelines/.cache:/mojp/.cache
+      - data:/mojp/data
+      - cache:/mojp/.cache
     deploy:
         replicas: 1
-        restart_policy: none
+        restart_policy:
+          condition: none
+
+volumes:
+  redis:
+  db:
+  data:
+  cache:
