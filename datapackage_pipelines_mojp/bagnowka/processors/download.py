@@ -40,9 +40,9 @@ class Processor(BaseProcessor):
         entity_id = item_data["UnitId"]
         date_taken = item_data["PeriodDesc"]["En"]
         pictures = item_data["Pictures"]
-        new_doc["pictures"] = pictures
+        new_doc["pictures"] = dict(pictures)
         new_doc["name"] = title
-        new_doc["main_image_url"] = main_image_url
+        new_doc["main_image_url"] = str(main_image_url)
         new_doc["desc"] = description
         new_doc["id"] = int(entity_id)
         new_doc["approximate_date_taken"] = date_taken

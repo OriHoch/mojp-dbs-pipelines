@@ -1,0 +1,593 @@
+{
+    "image_tuchola-1910": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Germany, pre 1795 Poland.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1910",
+                    "He": "1910"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/6b4cbf325dc30b5046c1e4b458c2e712f2a05ef6.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1910",
+            "He": "1910"
+        },
+        "Header": {
+            "En": "Tuchola, 1910"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/6b4cbf325dc30b5046c1e4b458c2e712f2a05ef6.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "11111111112901",
+        "_id": "11111111112901",
+        "Pictures": [
+            {
+                "PictureId": "6b4cbf325dc30b5046c1e4b458c2e712f2a05ef6"
+            },
+            {
+                "PictureId": "0539d300ddbb5c6223823b1a145a172406fb068e"
+            },
+            {
+                "PictureId": "e1198489815ca1f8d1379f7778c2845919874517"
+            }
+        ],
+        "Slug": {
+            "En": "image_tuchola-1910"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_krynki-synagogues-exterior-in-1967-still-standing-1967": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Russia, pre 1795 Poland.\nCourtesy of www.bagnowka.pl. Photographer: Krynki Memorial Book"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1967",
+                    "He": "1967"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/a0466b86206b72de48fbec844165ff83c3ff5019.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1967",
+            "He": "1967"
+        },
+        "Header": {
+            "En": "Krynki - synagogues exterior, In 1967 still standing...., 1967"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/a0466b86206b72de48fbec844165ff83c3ff5019.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "11111111117135",
+        "_id": "11111111117135",
+        "Pictures": [
+            {
+                "PictureId": "a0466b86206b72de48fbec844165ff83c3ff5019"
+            }
+        ],
+        "Slug": {
+            "En": "image_krynki-synagogues-exterior-in-1967-still-standing-1967"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_krzemieniec-churches-orthodox-church-former-catholic-unit-1920": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Ukraine, in 1918 - 1939 Poland. Pre 1914 Russia.\nCourtesy of www.bagnowka.pl. Photographer: Tomek"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1920",
+                    "He": "1920"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/01431b26cf701957daf76c67fc32f216766fd12a.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1920",
+            "He": "1920"
+        },
+        "Header": {
+            "En": "Krzemieniec - churches, Orthodox church, former catholic (unit?), 1920"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/01431b26cf701957daf76c67fc32f216766fd12a.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "11111111117173",
+        "_id": "11111111117173",
+        "Pictures": [
+            {
+                "PictureId": "01431b26cf701957daf76c67fc32f216766fd12a"
+            }
+        ],
+        "Slug": {
+            "En": "image_krzemieniec-churches-orthodox-church-former-catholic-unit-1920"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_troki-total-views-1930": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Lithuania, in 1918 - 1939 Poland. Pre 1914 Russia.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1930",
+                    "He": "1930"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/03e33beb87f09157b6fcfbf057b4c5350e43ccc7.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1930",
+            "He": "1930"
+        },
+        "Header": {
+            "En": "Troki - total views, 1930"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/03e33beb87f09157b6fcfbf057b4c5350e43ccc7.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "11111111113144",
+        "_id": "11111111113144",
+        "Pictures": [
+            {
+                "PictureId": "03e33beb87f09157b6fcfbf057b4c5350e43ccc7"
+            },
+            {
+                "PictureId": "07924f87efc40d3f36619eff6372f2c3c4bd0184"
+            },
+            {
+                "PictureId": "718b09e9cb13f1a3f1c8e8f1d5b0abd249b716cf"
+            },
+            {
+                "PictureId": "b81b3871be9c9b384891f282945b376a294ceb76"
+            },
+            {
+                "PictureId": "edd26894a3ba5dd2c879a4180d52ec61b6970fb1"
+            },
+            {
+                "PictureId": "b38994203f7dbf164383d2f5a2ed1c2ce931c3d9"
+            },
+            {
+                "PictureId": "afff04e7e912f4be9c62657efeb44c993e1e644c"
+            },
+            {
+                "PictureId": "8792dc32b3b7f6022394f6689fd9157fec5394ca"
+            },
+            {
+                "PictureId": "0ab12001696a484fd79d2627cf1eba117f7c357b"
+            },
+            {
+                "PictureId": "3cf025962fab55d948f4f3600c0d35631e1ad779"
+            }
+        ],
+        "Slug": {
+            "En": "image_troki-total-views-1930"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_grajewo-the-people-soldiers-1915": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Russia, pre 1795 Poland.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1915",
+                    "He": "1915"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/7d5f2b05fbe63ecc32897efe87d64788807d5e95.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1915",
+            "He": "1915"
+        },
+        "Header": {
+            "En": "Grajewo - the people, soldiers, 1915"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/7d5f2b05fbe63ecc32897efe87d64788807d5e95.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "111111111113310",
+        "_id": "111111111113310",
+        "Pictures": [
+            {
+                "PictureId": "7d5f2b05fbe63ecc32897efe87d64788807d5e95"
+            },
+            {
+                "PictureId": "24ce4b3ef28529297f0e8b58fc3c546dd55b25aa"
+            },
+            {
+                "PictureId": "a18ea9876f3452fc29e878564158b313113a0fc9"
+            },
+            {
+                "PictureId": "90064477f49d93fe3cd7cb3767acffc109c16799"
+            }
+        ],
+        "Slug": {
+            "En": "image_grajewo-the-people-soldiers-1915"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_grajewo-the-people-soldiers-1916": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Russia, pre 1795 Poland.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1916",
+                    "He": "1916"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/f2a27ed9bb8ac15fe8f3db34461038eb2a44e9ba.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1916",
+            "He": "1916"
+        },
+        "Header": {
+            "En": "Grajewo - the people, soldiers, 1916"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/f2a27ed9bb8ac15fe8f3db34461038eb2a44e9ba.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "111111111113383",
+        "_id": "111111111113383",
+        "Pictures": [
+            {
+                "PictureId": "f2a27ed9bb8ac15fe8f3db34461038eb2a44e9ba"
+            },
+            {
+                "PictureId": "c088bdbbc9040ea78d477694b50d70efee8cbf84"
+            },
+            {
+                "PictureId": "8e282972fd8fa1726916d5e3e80b4ebea6e66a6f"
+            },
+            {
+                "PictureId": "e4bc91145bb3ed60de6471b4717f283bfe2075f6"
+            },
+            {
+                "PictureId": "e47faa4c29316424fc272588b89c6ecd23cd2c3c"
+            }
+        ],
+        "Slug": {
+            "En": "image_grajewo-the-people-soldiers-1916"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_grajewo-the-people-soldiers-1910": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Russia, pre 1795 Poland.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1910",
+                    "He": "1910"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/d638ac8124a29576e25e775d0304d79c92c84a32.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1910",
+            "He": "1910"
+        },
+        "Header": {
+            "En": "Grajewo - the people, soldiers, 1910"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/d638ac8124a29576e25e775d0304d79c92c84a32.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "111111111113411",
+        "_id": "111111111113411",
+        "Pictures": [
+            {
+                "PictureId": "d638ac8124a29576e25e775d0304d79c92c84a32"
+            }
+        ],
+        "Slug": {
+            "En": "image_grajewo-the-people-soldiers-1910"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_podhajce-great-synagogue-1930": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Ukraine, in 1918 - 1939 Poland. Pre 1914 Austro Hungary.\nCourtesy of www.bagnowka.pl. Photographer: Tomek W"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1930",
+                    "He": "1930"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/88531f94b8fcdfbe5a5d9e866474fd3aeffd644a.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1930",
+            "He": "1930"
+        },
+        "Header": {
+            "En": "Podhajce, Great synagogue, 1930"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/88531f94b8fcdfbe5a5d9e866474fd3aeffd644a.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "11111111114661",
+        "_id": "11111111114661",
+        "Pictures": [
+            {
+                "PictureId": "88531f94b8fcdfbe5a5d9e866474fd3aeffd644a"
+            }
+        ],
+        "Slug": {
+            "En": "image_podhajce-great-synagogue-1930"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    },
+    "image_judaika-synagogues": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Ukraine, pre 1795 Poland.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "",
+                    "He": ""
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/4ffae06dc5808563672b7ec891bd99dcc8631dc7.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "",
+            "He": ""
+        },
+        "Header": {
+            "En": "Judaika - synagogues"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/4ffae06dc5808563672b7ec891bd99dcc8631dc7.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "111111111118417",
+        "_id": "111111111118417",
+        "Pictures": [
+            {
+                "PictureId": "4ffae06dc5808563672b7ec891bd99dcc8631dc7"
+            },
+            {
+                "PictureId": "aa8aad8a65605a88c5a6558f592dbbef876070ed"
+            },
+            {
+                "PictureId": "6f9c68de483b4dae288cc3151bea27b0cf69d2fd"
+            },
+            {
+                "PictureId": "8b3e4326aed6a4ac7b69a771fe57516c5acf9ab7"
+            },
+            {
+                "PictureId": "a09cd16841a2b739aa4b83a8b40e3b45f15d8b36"
+            },
+            {
+                "PictureId": "987a7c8192b99670d652205ee01aa97896bc305f"
+            },
+            {
+                "PictureId": "496e6d67eb628c648b4e256b40efc34310c9f3a1"
+            },
+            {
+                "PictureId": "150f196f4e148fa48d80f17fb291a70e5fb54229"
+            },
+            {
+                "PictureId": "2f5a8ffd5938f8343315e6d7d1f4e7d501e59888"
+            },
+            {
+                "PictureId": "ddc85500e8ab2c0c5b940fa9f4257dacdd45f9d8"
+            }
+        ],
+        "Slug": {
+            "En": "image_judaika-synagogues"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:28.000Z"
+    },
+    "image_ciechocinek-little-restaurant-sigalina-1900": {
+        "RightsDesc": "Full",
+        "UpdateUser": "BH Online",
+        "StatusDesc": "Completed",
+        "UnitText1": {
+            "En": "Today: Poland, in 1918 - 1939 Poland. Pre 1914 Russia.\nCourtesy of www.bagnowka.pl"
+        },
+        "UnitPeriod": [
+            {
+                "PeriodDateTypeDesc": {
+                    "En": "Year",
+                    "He": "שנים"
+                },
+                "PeriodDesc": {
+                    "En": "1900",
+                    "He": "1900"
+                }
+            }
+        ],
+        "main_image_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/4966e4132fb13108acf5adef31b36038b5c7a735.jpg",
+        "DisplayStatusDesc": "Museum and Internet",
+        "UnitTypeDesc": "Photo",
+        "TS": "",
+        "PeriodDesc": {
+            "En": "1900",
+            "He": "1900"
+        },
+        "Header": {
+            "En": "Ciechocinek, Little restaurant \"Sigalina\", 1900"
+        },
+        "thumbnail_url": "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/full/4966e4132fb13108acf5adef31b36038b5c7a735.jpg",
+        "UnitHeaderDMSoundex": {
+            "En": "",
+            "He": ""
+        },
+        "bagnowka": "True",
+        "UnitId": "111111111111815",
+        "_id": "111111111111815",
+        "Pictures": [
+            {
+                "PictureId": "4966e4132fb13108acf5adef31b36038b5c7a735"
+            }
+        ],
+        "Slug": {
+            "En": "image_ciechocinek-little-restaurant-sigalina-1900"
+        },
+        "related": [
+            "place_belarus"
+        ],
+        "UpdateDate": "2017-05-21T11:04:27.000Z"
+    }
+}
