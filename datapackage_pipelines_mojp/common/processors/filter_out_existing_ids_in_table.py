@@ -20,7 +20,7 @@ class Processor(BaseProcessor):
         if int(row[self._parameters["id-field"]]) in self._existing_ids:
             return None
         else:
-            logging.info("new id: {}".format(row[self._parameters["id-field"]]))
+            # logging.info("new id: {}".format(row[self._parameters["id-field"]]))
             return row
 
 if __name__ == '__main__':

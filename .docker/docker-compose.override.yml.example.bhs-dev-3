@@ -1,0 +1,41 @@
+version: '3.2'
+
+services:
+
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    image: mojp/pipelines-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.docker/.data/redis:/data
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    image: mojp/pipelines-db
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_PASSWORD="
+    volumes:
+      - ./.docker/.data/db:/var/lib/postgresql/data
+
+  app:
+    build: .
+    # command: echo "app is disabled"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - "DPP_REDIS_HOST=redis"
+      - "DPP_DB_ENGINE=postgresql://postgres:@db:5432/postgres"
+      - "MOJP_ELASTICSEARCH_DB=10.240.0.7:9200"
+      - "MOJP_ELASTICSEARCH_INDEX=next-mojp-dev"
+      - "CLEARMASH_CLIENT_TOKEN="
+    volumes:
+      - ./.docker/.data:/mojp/data
+      - ./.docker/.data/.cache:/mojp/.cache

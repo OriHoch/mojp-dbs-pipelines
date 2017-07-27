@@ -117,9 +117,11 @@ class BaseProcessor(object):
         return self._db_session
 
     def db_commit(self):
-        self.db_session.commit()
-        delattr(self, "_db_session")
-        delattr(self, "_db_meta")
+        if hasattr(self, "_db_session"):
+            self.db_session.commit()
+            delattr(self, "_db_session")
+        if hasattr(self, "_db_meta"):
+            delattr(self, "_db_meta")
 
     @property
     def db_meta(self):

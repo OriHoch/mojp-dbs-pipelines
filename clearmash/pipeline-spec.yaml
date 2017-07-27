@@ -1,5 +1,8 @@
 entity-ids:
   # downloads all the entity ids from the clearmash folders (AKA collections)
+  schedule:
+    # daily at 00:00
+    crontab: "0 0 * * *"
   pipeline:
     - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
       parameters:
@@ -11,6 +14,7 @@ entity-ids:
 entity-ids-update-db:
   # load new entity_ids to the DB
   dependencies:
+    # runs in case entity-ids datapackage changed
     - datapackage: data/clearmash/entity-ids/datapackage.json
   pipeline:
     - run: load_resource
@@ -33,10 +37,11 @@ entity-ids-update-db:
             mode: append
 
 download-new-entities:
-  # downloads only new entities (which don't have a corresponding row in clearmash-entities)
+  # downloads new entities from entity-ids which don't already have a corresponding row in clearmash-entities
   # dumps to path
-  dependencies:
-    - pipeline: ./clearmash/entity-ids-update-db
+  schedule:
+    # daily at 0:15 (after entity-ids were added to DB)
+    crontab: "15 0 * * *"
   pipeline:
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
       parameters:
@@ -44,6 +49,7 @@ download-new-entities:
         datapackage: ../data/clearmash/entity-ids/datapackage.json
         load-resource: entity-ids
         load-table: clearmash-entity-ids
+        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:download_new_entities_where)
     - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
       parameters:
         resource: entity-ids
@@ -62,9 +68,9 @@ download-related-entities:
   # downloads related entities
   # uses logic that reduces number of API calls but might result in not having all related items (e.g. only the first page)
   # other pipelines should deal with full syncing of all related items
-  dependencies:
-    # run it after new entities were synced to ES - as the download of related items takes a long time
-    - pipeline: ./clearmash/new-entities-sync
+  schedule:
+    # daily at 2:30 (after entities were updated in DB)
+    crontab: "30 2 * * *"
   pipeline:
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
       parameters:
@@ -90,8 +96,9 @@ download-related-entities:
 
 entities-update-db:
   # load all downloaded entities (new and related) to the clearmash-entities table
-  dependencies:
-    - datapackage: data/clearmash/download-new-entities/datapackage.json
+  schedule:
+    # daily at 1:30 and 3:30 (after new and related entities were downloaded)
+    crontab: "30 1,3 * * *"
   pipeline:
     - run: ..datapackage_pipelines_mojp.common.processors.load_resources
       parameters:
@@ -132,8 +139,9 @@ entities-update-db:
 
 new-entities-sync:
   # sync the new entities to elasticsearch
-  dependencies:
-    - pipeline: ./clearmash/entities-update-db
+  schedule:
+    # daily at 2:00 and 4:00 (after new and related entities were updated in DB)
+    crontab: "0 2,4 * * *"
   pipeline:
     # load new entities only (hours_to_next_sync=0)
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
@@ -142,7 +150,7 @@ new-entities-sync:
         datapackage: ../data/clearmash/download-new-entities/datapackage.json
         load-resource: entities
         load-table: clearmash-entities
-        where: "hours_to_next_sync=0"
+        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:new_entities_sync_where)
     # update the db with last synced time, this ensures items will not be synced again as new items (even if they fail)
     - run: ..datapackage_pipelines_mojp.common.processors.update_db
       parameters:
