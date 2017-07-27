@@ -1,11 +1,12 @@
 from jsontableschema.model import SchemaModel
 from jsontableschema import Schema
 from elasticsearch import Elasticsearch, NotFoundError
-import json, logging
+import json, logging, os
 from datapackage_pipelines_mojp.common.constants import DBS_DOCS_TABLE_SCHEMA, PIPELINES_ES_DOC_TYPE
 from copy import deepcopy
 
-ELASTICSEARCH_TESTS_INDEX = "mojptests"
+ELASTICSEARCH_TESTS_INDEX = os.environ.get("TESTS_MOJP_ELASTICSEARCH_INDEX", "mojptests")
+ELASTICSEARCH_TESTS_HOST = os.environ.get("TESTS_MOJP_ELASTICSEARCH_DB", "localhost:9200")
 
 
 def assert_conforms_to_dbs_schema(row):
@@ -31,7 +32,7 @@ def assert_conforms_to_schema(schema, doc):
                             "does not conform to schema '{}'".format(*map(json.dumps, [k, v, schema])))
     return res
 
-def given_empty_elasticsearch_instance(host="localhost:9200", index=ELASTICSEARCH_TESTS_INDEX):
+def given_empty_elasticsearch_instance(host=ELASTICSEARCH_TESTS_HOST, index=ELASTICSEARCH_TESTS_INDEX):
     es = Elasticsearch(host)
     try:
         es.indices.delete(index)
@@ -50,7 +51,7 @@ def es_doc(es, source, source_id):
         return None
 
 def get_mock_settings(**kwargs):
-    default_settings = {"MOJP_ELASTICSEARCH_DB": "localhost:9200",
+    default_settings = {"MOJP_ELASTICSEARCH_DB": ELASTICSEARCH_TESTS_HOST,
                         "MOJP_ELASTICSEARCH_INDEX": ELASTICSEARCH_TESTS_INDEX}
     default_settings.update(kwargs)
     return type("MockSettings", (object,), default_settings)

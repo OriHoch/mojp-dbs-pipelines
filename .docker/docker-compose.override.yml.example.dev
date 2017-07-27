@@ -1,6 +1,6 @@
 # template for dev environment - contains everything except elasticsearch
 
-version: '3'
+version: '3.2'
 
 services:
   redis:

@@ -1,0 +1,15 @@
+FROM mojp/pipelines-app
+
+RUN pip install tox
+
+COPY tox.ini /mojp/tox.ini
+COPY requirements.txt /mojp/requrements.txt
+COPY setup.py /mojp/setup.py
+
+RUN tox --notest
+
+COPY . /mojp/
+
+RUN pip install -e .
+
+ENTRYPOINT ["/mojp/.docker/tests/entrypoint.sh"]

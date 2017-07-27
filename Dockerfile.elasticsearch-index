@@ -1,0 +1,11 @@
+FROM mojp/dbs-back
+
+ENV ELASTICSEARCH_HOST elasticsearch:9200
+ENV MOJP_INDEX mojp
+
+COPY .docker/elasticsearch/index-entrypoint.sh /mojp-pipelines-index-entrypoint.sh
+RUN chmod +x /mojp-pipelines-index-entrypoint.sh
+
+CMD ["--ensure"]
+
+ENTRYPOINT ["/mojp-pipelines-index-entrypoint.sh"]

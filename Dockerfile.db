@@ -1,0 +1,9 @@
+FROM postgres:9.6.3-alpine
+
+# default password which we use for tests and local development
+ENV POSTGRES_PASSWORD 123456
+
+# example connection string: postgresql://postgres:123456@localhost:5432/postgres
+
+# VOLUME /var/lib/postgresql/data
+# EXPOSE 5432

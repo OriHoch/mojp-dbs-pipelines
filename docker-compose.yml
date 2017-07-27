@@ -1,7 +1,9 @@
-version: '3'
+# the main docker compose file is kept minimal to allow full control from the override file
+
+version: '3.2'
 
 services:
   app:
-    image: orihoch/mojp-dbs-pipelines
+    image: mojp/pipelines-app
     ports:
       - "5000:5000"

@@ -1,0 +1,10 @@
+FROM redis:4.0.1-alpine
+
+# COPY redis.conf /usr/local/etc/redis/redis.conf
+# CMD [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+
+# If persistence is enabled, data is stored in the VOLUME /data
+# For more about Redis Persistence, see http://redis.io/topics/persistence.
+
+# VOLUME /data
+# EXPOSE 6379

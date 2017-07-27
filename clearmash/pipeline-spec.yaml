@@ -74,6 +74,8 @@ download-related-entities:
         load-table: clearmash-entities
     # gets all the document ids from related fields in the source entry
     # makes the call to get related fields only when needed
+    # compares against all document ids in the entities table
+    # and also against all document ids downloaded during this pipeline run
     - run: ..datapackage_pipelines_mojp.clearmash.processors.download_related
       parameters:
         input-resource: entities
@@ -99,6 +101,7 @@ entities-update-db:
             url: ../data/clearmash/download-new-entities/datapackage.json
           - resource: related-entities
             url: ../data/clearmash/download-related-documents/datapackage.json
+    # filter out entities which were previously downloaded (base on item_id in entities table)
     - run: ..datapackage_pipelines_mojp.common.processors.filter_out_existing_ids_in_table
       parameters:
         resource: entities
@@ -132,7 +135,7 @@ new-entities-sync:
   dependencies:
     - pipeline: ./clearmash/entities-update-db
   pipeline:
-    # load new entities only
+    # load new entities only (hours_to_next_sync=0)
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
       parameters:
         add-resource: entities
@@ -148,8 +151,8 @@ new-entities-sync:
         id-column: item_id
         id-field: item_id
         fields:
-          last_synced: datetime-now
-          hours_to_next_sync: 5
+          last_synced: (datetime:datetime.now)
+          hours_to_next_sync: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:hours_to_next_sync:args)
     # filters out items which are not for display and converts to common dbs schema for syncing to ES
     # uses the entities table to get related document ids (doesn't make additional API calls for related docs)
     - run: ..datapackage_pipelines_mojp.clearmash.processors.convert
