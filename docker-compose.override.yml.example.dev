@@ -5,6 +5,8 @@ version: '3'
 services:
   redis:
     image: redis:alpine
+    volumes:
+      - ./.data-docker/redis:/data
   db:
     image: sameersbn/postgresql:9.6-2
     depends_on:
@@ -12,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - .data-docker/postgresql:/var/lib/postgresql
+      - ./.data-docker/postgresql:/var/lib/postgresql
   app:
     depends_on:
       - db
@@ -21,4 +23,5 @@ services:
       - "MOJP_ELASTICSEARCH_DB=10.240.0.7:9200"
       - "MOJP_ELASTICSEARCH_INDEX=next-mojp-dev"
     volumes:
-      - .data-docker:/mojp/data
+      - ./.data-docker:/mojp/data
+      - ./.data-docker/.cache:/mojp/.cache

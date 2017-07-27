@@ -8,20 +8,28 @@ class Processor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
         super(Processor, self).__init__(*args, **kwargs)
+        self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
+        if self._override_collections:
+            self._override_collections = self._override_collections.split(",")
+            logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
 
     @classmethod
     def _get_schema(cls):
-        return {"fields": [{"name": "collection", "type": "string"},
-                           {"name": "item_id", "type": "integer"}]}
+        return {"fields": [{"name": "item_id", "type": "integer"},
+                           {"name": "collection", "type": "string"}],
+                "primaryKey": ["item_id"]}
+
+    def _filter_row(self, row):
+        return row
 
     def _get_folder(self, folder_id, folder, num_retries=0):
         if num_retries > 0:
-            logging.info("sleeping {} seconds before retrying".format(self._get_settings("CLEARMASH_MAX_RETRIES")))
+            logging.info("sleeping {} seconds before retrying".format(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS")))
             time.sleep(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS"))
         try:
-            for item in self._get_clearmash_api().get_web_document_system_folder(folder_id)["Items"]:
-                yield {"collection": folder["collection"], "item_id": item["Id"]}
-        except Exception:
+            res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
+        except Exception as e:
+            logging.error(e)
             logging.info("unexpected exception getting clearmash folder for collection {}".format(folder["collection"]))
             num_retries += 1
             if num_retries < self._get_settings("CLEARMASH_MAX_RETRIES"):
@@ -34,13 +42,20 @@ class Processor(BaseProcessor):
                     logging.info("collection is in skip-failure param, so continuing".format(self._get_settings("CLEARMASH_MAX_RETRIES")))
                 else:
                     raise
+        else:
+            for item in res["Items"]:
+                row = {"collection": folder["collection"], "item_id": item["Id"]}
+                row = self._filter_row(row)
+                if row:
+                    yield self._filter_row(row)
 
     def _get_resource(self):
-        override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         for folder_id, folder in CONTENT_FOLDERS.items():
-            if override_collections and folder["collection"] not in override_collections:
+            if self._override_collections and folder["collection"] not in self._override_collections:
+                logging.info("collection {} not in override collections, skipping".format(folder["collection"]))
                 continue
             yield from self._get_folder(folder_id, folder)
+        self._process_cleanup()
 
     def _get_clearmash_api(self):
         return ClearmashApi()

@@ -23,11 +23,14 @@ docker-build:
 docker-build-all:
 	make docker-build
 	docker build -t orihoch/mojp-elasticsearch dockers/elasticsearch
+	docker build -t orihoch/mojp-kibana dockers/kibana
 	docker build -t orihoch/mojp-dbs-back https://github.com/beit-hatfutsot/dbs-back.git
 
 docker-start:
 	mkdir -p .data-docker/elasticsearch
 	mkdir -p .data-docker/postgresql
+	mkdir -p .data-docker/redis
+	mkdir -p .data-docker/.cache
 	docker-compose up -d
 
 docker-logs:

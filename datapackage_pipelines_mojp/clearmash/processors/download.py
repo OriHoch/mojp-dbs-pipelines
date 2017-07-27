@@ -1,15 +1,22 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
-from datapackage_pipelines_mojp.common.utils import get_elasticsearch
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents
 from datapackage_pipelines_mojp.clearmash.constants import DOWNLOAD_PROCESSOR_BUFFER_LENGTH
+import logging, datetime
 
 
 class Processor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
         super(Processor, self).__init__(*args, **kwargs)
-        self._es, self._idx = get_elasticsearch(self._settings)
         self._rows_buffer = []
+        self._override_item_ids = self._parameters.get("override-item-ids")
+        if self._override_item_ids:
+            self._override_item_ids = self._override_item_ids.split(",")
+            logging.info("using override-item-ids from parameters: {}".format(self._override_item_ids))
+        else:
+            self._override_item_ids = self._get_settings("OVERRIDE_CLEARMASH_ITEM_IDS")
+            if self._override_item_ids:
+                logging.info("using OVERRIDE_CLEARMASH_ITEM_IDS env var: {}".format(self._override_item_ids))
 
     @classmethod
     def _get_schema(cls):
@@ -30,11 +37,13 @@ class Processor(BaseProcessor):
                            {"name": "metadata", "type": "object",
                             "description": "full metadata"},
                            {"name": "parsed_doc", "type": "object",
-                            "description": "all other attributes"}]}
+                            "description": "all other attributes"}],
+                "primaryKey": ["item_id"]}
 
     def _filter_resource(self, resource_descriptor, resource_data):
         for row in resource_data:
-            self._rows_buffer.append(row)
+            if self._check_override_item(row):
+                self._rows_buffer.append(row)
             yield from self._handle_rows_buffer()
         yield from self._handle_rows_buffer(force_flush=True)
 
@@ -43,20 +52,18 @@ class Processor(BaseProcessor):
             yield from self._flush_rows_buffer()
 
     def _check_override_item(self, row):
-        override_item_ids = self._get_settings("OVERRIDE_CLEARMASH_ITEM_IDS")
-        if not override_item_ids:
+        if not self._override_item_ids or str(row["item_id"]) in self._override_item_ids:
             return True
         else:
-            return str(row["item_id"]) in override_item_ids
+            logging.info("item_id {} not in override item ids".format(row["item_id"]))
+            return False
 
     def _flush_rows_buffer(self):
-        item_ids = {row["item_id"]: row["collection"]
-                    for row in self._rows_buffer
-                    if self._check_override_item(row)}
+        item_ids = {row["item_id"]: row["collection"] for row in self._rows_buffer}
         self._rows_buffer = []
         if len(item_ids.keys()) > 0:
             for doc in parse_clearmash_documents(self._get_clearmash_api().get_documents(list(item_ids.keys()))):
-                doc["collection"] = item_ids[doc["item_id"]]
+                doc.update(collection=item_ids[doc["item_id"]])
                 yield doc
 
     def _get_clearmash_api(self):

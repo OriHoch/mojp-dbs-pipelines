@@ -51,24 +51,7 @@ def test_sync():
     es_docs = [es_doc(es, "clearmash", id) for id in ["115306", "115325", "115800", "115318", "115301"]]
     assert len(es_docs) == 5
     assert_dict(es_docs[0], {'slug_he': 'שםמשפחה_בן-עמרה', 'title_en': 'BEN AMARA', 'collection': 'familyNames',
-                             "keys": {'main_image_url', 'version', 'title_he_lc', 'parsed_doc',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_related_musictext',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_related_recieve_unit',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_related_place', 'item_id',
-                                      'template_id', 'item_url', 'template_changeset_id', 'slug_en',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_source', 'changeset',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_multimedia_music',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_multimedia_movies',
-                                      'source_id',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_multimedia_photos',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_related_personality',
-                                      'title_he', 'title_he_suggest', 'main_thumbnail_image_url',
-                                      'content_html_en', 'document_id',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_family_name',
-                                      'title_en_lc',
-                                      'related_documents__c6_beit_hatfutsot_bh_base_template_related_exhibition',
-                                      'metadata',
-                                      'title_en_suggest', 'source', 'slugs', 'content_html_he'}})
+                             "keys": {'content_html_en', 'template_changeset_id', 'title_en_lc', 'changeset', 'slugs', 'item_id', 'metadata', 'slug_en', 'template_id', 'title_en_suggest', 'main_thumbnail_image_url', 'title_he_lc', 'version', 'source', 'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id', 'content_html_he', 'title_he_suggest', 'item_url'}})
 
 def test_sync_with_invalid_collection():
     es = given_empty_elasticsearch_instance()

@@ -40,6 +40,24 @@ Make sure you have Python 3.6 in a virtualenv
 * `dpp`
 
 
+### Connecting the local pipelines to the docker services
+
+Assuming you created your docker-compose based on docker-compose.override.yml.example.full
+
+* edit docker-compose.override.yml and uncomment the line that disable the app (not required but recommended)
+* copy the elasticsearch and postgresql variables from .env.example.full to your .env file
+* pip install psycopg2
+
+Now, each time, before running you should setup the following environment variables:
+
+* `source .env`
+* `export DPP_DB_ENGINE=$DPP_DB_ENGINE`
+
+Then you can run dpp
+
+* `dpp`
+
+
 ## Available Data Sources
 
 ### Clearmash
