@@ -5,7 +5,7 @@ install:
   - cp .travis/docker-compose.override.yml docker-compose.override.yml
   - bin/docker/build_tests.sh
 script:
-  - bin/docker/run_tests
+  - bin/docker/run_tests.sh
 deploy:
   provider: script
   script: .travis/deploy.sh

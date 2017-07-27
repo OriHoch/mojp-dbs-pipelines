@@ -8,6 +8,9 @@ services:
       dockerfile: Dockerfile.elasticsearch
     image: mojp/pipelines-elasticsearch
 
+  app:
+    build: .
+
   tests:
     build:
       context: .
