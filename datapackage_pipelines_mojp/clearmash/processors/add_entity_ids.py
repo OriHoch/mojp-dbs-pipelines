@@ -55,7 +55,6 @@ class Processor(BaseProcessor):
                 logging.info("collection {} not in override collections, skipping".format(folder["collection"]))
                 continue
             yield from self._get_folder(folder_id, folder)
-        self._process_cleanup()
 
     def _get_clearmash_api(self):
         return ClearmashApi()
