@@ -70,7 +70,6 @@ class BaseProcessor(object):
         for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
             if self._is_matching_output_resource(resource_descriptor):
                 yield self._filter_resource(resource_descriptor, resource_data)
-        self._process_cleanup()
 
     def _filter_resource_descriptor(self, resource_descriptor):
         resource_descriptor.update(name=self._output_resource,
@@ -116,13 +115,6 @@ class BaseProcessor(object):
             self._db_session = self._get_new_db_session()
         return self._db_session
 
-    def db_commit(self):
-        if hasattr(self, "_db_session"):
-            self.db_session.commit()
-            delattr(self, "_db_session")
-        if hasattr(self, "_db_meta"):
-            delattr(self, "_db_meta")
-
     @property
     def db_meta(self):
         if not hasattr(self, "_db_meta"):
@@ -130,9 +122,11 @@ class BaseProcessor(object):
             self._db_meta.reflect()
         return self._db_meta
 
+    def db_commit(self):
+        if hasattr(self, "_db_session"):
+            self._db_session.commit()
+            self._db_session = self._get_new_db_session()
+            delattr(self, "_db_meta")
+
     def _get_new_db_session(self):
         return get_session()
-
-    def _process_cleanup(self):
-        if hasattr(self, "_db_session"):
-            self.db_commit()

@@ -14,7 +14,6 @@ class Processor(BaseProcessor):
             self._existing_ids = [int(row[0]) for row in self.db_session.query(self._id_column).all()]
         else:
             self._existing_ids = []
-        self.db_commit()
         return super(Processor, self)._process(datapackage, resources)
 
     def _filter_row(self, row):
