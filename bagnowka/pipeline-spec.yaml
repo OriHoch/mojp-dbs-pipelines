@@ -11,26 +11,13 @@ download:
     - run: dump.to_path
       parameters:
         out-path: ../data/bagnowka/download
-    # - run: load_resource
-    #   parameters:
-    #     resource: bagnowka
-    #     name: bagnowka-convert
-    #     url: ../data/bagnowka/datapackage.json
-    # - run: ..datapackage_pipelines_mojp.bagnowka.processors.convert
-    #   parameters:
-    #     input-resource: bagnowka
-    #     output-resource: dbs-docs
-    # - run: dump.to_path
-    #   parameters:
-    #   out-path: ../data/bagnowka/convert
-
-
-    # - run: ..datapackage_pipelines_mojp.common.processors.sync
-    #   parameters:
-    #     input-resource: dbs-docs
-    #     output-resource: dbs-docs-sync-log
-    # - run: dump.to_path
-    #   parameters:
-    #     out-path: ../data/bagnowka/sync
-
-
+    - run: add_metadata
+      parameters:
+        name: bagnowka-download
+    - run: ..datapackage_pipelines_mojp.bagnowka.processors.convert
+      parameters:
+        input-resource: bagnowka
+        output-resource: dbs-docs
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bagnowka/convert
