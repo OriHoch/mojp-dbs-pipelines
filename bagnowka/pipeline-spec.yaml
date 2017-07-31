@@ -1,0 +1,23 @@
+# bagnowka/pipeline-spec.yaml
+
+download:
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bagnowka-download
+    - run: ..datapackage_pipelines_mojp.bagnowka.processors.download
+      parameters:
+        add-resource: bagnowka
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bagnowka/download
+    - run: add_metadata
+      parameters:
+        name: bagnowka-download
+    - run: ..datapackage_pipelines_mojp.bagnowka.processors.convert
+      parameters:
+        input-resource: bagnowka
+        output-resource: dbs-docs
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bagnowka/convert
