@@ -15,23 +15,24 @@ class BagnowkaConvertProcessor(BaseProcessor):
     def _filter_resource(self, resource_descriptor, resource_data):
         for cm_row in resource_data:
             dbs_row = self._cm_row_to_dbs_row(cm_row)
+            logging.info("hello CONVERT")
             yield dbs_row
 
     def _cm_row_to_dbs_row(self, cm_row):
         dbs_row = {"source": "Bagnowka",
                 "id": cm_row["id"],
-                "source_doc": cm_row,
                 "version": "one",
-                "title": {"title_en": cm_row["name"]},
+                "title": {"en": cm_row["name"]},
                 "collection": "photoUnits",
-                "main_image_url": "",
+                "main_image_url": cm_row["main_image_url"],
                 "main_thumbnail_image_url": "",
                 "title_en": cm_row["name"], 
                 "title_he": "",
-                "content_html": {"content_en": cm_row["desc"], "content_he": ""},
+                "content_html": {"en": cm_row["desc"]},
                 "content_html_en": "",
                 "content_html_he": "",
-                "related_documents": {}
+                "related_documents": {},
+                "source_doc": cm_row
                 }
         return dbs_row
 

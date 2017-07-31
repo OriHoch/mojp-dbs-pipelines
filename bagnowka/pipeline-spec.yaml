@@ -21,3 +21,25 @@ download:
     - run: dump.to_path
       parameters:
         out-path: ../data/bagnowka/convert
+    # sync to elasticsearch
+    - run: ..datapackage_pipelines_mojp.common.processors.sync
+      parameters:
+        input-resource: dbs-docs
+        output-resource: dbs-docs-sync-log
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bagnowka/sync
+    #   #  post:
+    # - run: load_resource
+    #   parameters:
+    #     resource: dbs-docs-sync-log
+    #     url: ../data/bagnowka/sync/datapackage.json
+    # - run: stream_remote_resources
+    # - run: ..datapackage_pipelines_mojp.common.processors.post
+    #   parameters:
+    #     resource: dbs-docs-sync-log
+    #     all_items_query:
+    #       source: bagnowka
+    # - run: dump.to_path
+    #   parameters:
+    #     out-path: ../data/bagnowka/post

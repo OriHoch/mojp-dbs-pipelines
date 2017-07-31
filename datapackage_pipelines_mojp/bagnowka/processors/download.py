@@ -1,3 +1,5 @@
+#coding:utf8
+
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 import json
 import logging
@@ -27,7 +29,7 @@ class BagnowkaDownloadProcessor(BaseProcessor):
             for item_data in all_docs:
                 new = all_docs[item_data]
                 doc = self.download(new)
-                logging.info("hello world")
+                logging.info("hello DOWNLOAD")
                 yield doc
 
 
@@ -38,7 +40,7 @@ class BagnowkaDownloadProcessor(BaseProcessor):
         new_doc["pictures"] = []
         title = item_data["Header"]["En"]
         main_image_url = item_data["main_image_url"]
-        entity_id = str(item_data["UnitId"])
+        entity_id = item_data["UnitId"]
         date_taken = item_data["PeriodDesc"]["En"]
         all_pics = item_data["Pictures"]
         pic_ids = [i["PictureId"] for i in all_pics]
