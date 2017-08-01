@@ -92,11 +92,14 @@ class Processor(BaseProcessor):
         num_photos_child_docs = len(photos_child_docs)
         if num_photos_child_docs > 0:
             if num_photos_child_docs > 1:
-                logging.warning("found more then 1 photos child docs, using only the 1st one")
+                logging.warning("found more then 1 photos child docs, using only the 1st one (id={})".format(dbs_row["id"]))
             first_photo_child_doc = photos_child_docs[0]
             media_galleries = self._get_clearmash_api().media_galleries.get_for_child_doc(first_photo_child_doc)
             media_galleries = media_galleries.get("_c6_beit_hatfutsot_bh_multimedia_photo_mg", [])
-            if len(media_galleries) == 1:
+            num_media_galleries = len(media_galleries)
+            if num_media_galleries > 0:
+                if num_media_galleries > 1:
+                    logging.warning("found more then 1 media galleris, using only the 1st one(id={})".format(dbs_row["id"]))
                 media_gallery = media_galleries[0]
                 num_gallery_items = len(media_gallery.gallery_items)
                 if num_gallery_items > 0:
@@ -107,9 +110,10 @@ class Processor(BaseProcessor):
                         tmp = image_url.split(".")
                         main_image_url = ".".join(tmp[:-1]) + "_1024x0." + tmp[-1]
                         main_thumbnail_image_url = ".".join(tmp[:-1]) + "_260x0." + tmp[-1]
-            elif num_photos_child_docs > 1:
-                raise Exception("unexpected length of photo media galleries: {}".format(len(media_galleries)))
-
+            else:
+                logging.warning("did not find any media galleries (id={})".format(dbs_row["id"]))
+        else:
+            logging.warning("did not find any photo child docs (id={})".format(dbs_row["id"]))
 
         dbs_row.update(main_image_url=main_image_url, main_thumbnail_image_url=main_thumbnail_image_url)
 
