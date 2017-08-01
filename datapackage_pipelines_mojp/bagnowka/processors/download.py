@@ -1,10 +1,11 @@
-#coding:utf8
+# coding:utf8
 
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 import json
 import logging
 import time
 import os
+
 
 class BagnowkaDownloadProcessor(BaseProcessor):
 
@@ -15,6 +16,8 @@ class BagnowkaDownloadProcessor(BaseProcessor):
     def _get_schema(cls):
         return {"fields": [{"name": "name", "type": "string"},
                            {"name": "main_image_url", "type": "string",
+                               "description": "stored in aws S3"},
+                           {"name": "main_thumbnail_url", "type": "string",
                                "description": "stored in aws S3"},
                            {"name": "desc", "type": "string"},
                            {"name": "id", "type": "string",
@@ -32,25 +35,28 @@ class BagnowkaDownloadProcessor(BaseProcessor):
                 logging.info("hello DOWNLOAD")
                 yield doc
 
-
     def download(self, item_data):
         new_doc = {}
         description = item_data["UnitText1"]["En"]
-        new_doc["desc"] = description
-        new_doc["pictures"] = []
         title = item_data["Header"]["En"]
         main_image_url = item_data["main_image_url"]
+        main_id = main_image_url.split('/')
+        m_id = main_id[len(main_id) - 1]
         entity_id = item_data["UnitId"]
         date_taken = item_data["PeriodDesc"]["En"]
         all_pics = item_data["Pictures"]
         pic_ids = [i["PictureId"] for i in all_pics]
-        new_doc["pictures"] = {"picture_ids": pic_ids}
         new_doc["name"] = title
+        new_doc["desc"] = description
         new_doc["main_image_url"] = main_image_url
+        new_doc["main_thumbnail_url"] = "https://s3-us-west-2.amazonaws.com/bagnowka-scraped/thumbs/small/{}".format(
+            m_id)
         new_doc["id"] = entity_id
         new_doc["approximate_date_taken"] = date_taken
+        new_doc["pictures"] = {"picture_ids": pic_ids}
 
         return new_doc
+
 
 
 if __name__ == '__main__':
