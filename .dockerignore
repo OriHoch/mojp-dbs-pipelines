@@ -7,6 +7,7 @@
 data
 .dpp.db
 .env
+ENV
 .env.example
 .travis.yml
 *.md
