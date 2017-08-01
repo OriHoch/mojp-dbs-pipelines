@@ -1,0 +1,23 @@
+version: '3.2'
+
+services:
+
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: Dockerfile.elasticsearch
+    image: mojp/pipelines-elasticsearch
+
+  app:
+    build: .
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    image: mojp/pipelines-tests
+    depends_on:
+      - elasticsearch
+    environment:
+      - "TESTS_MOJP_ELASTICSEARCH_INDEX=mojptests"
+      - "TESTS_MOJP_ELASTICSEARCH_DB=elasticsearch:9200"

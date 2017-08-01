@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 echo "Ssh deployment"
 if [ ! -f ./deploy-mojp-dbs-pipelines.id_rsa ]; then

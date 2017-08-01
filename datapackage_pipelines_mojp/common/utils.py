@@ -1,4 +1,4 @@
-import iso639
+import iso639, importlib
 from elasticsearch import Elasticsearch
 
 KNOWN_LANGS = iso639.languages.part1.keys()
@@ -23,3 +23,19 @@ def populate_iso_639_language_field(dbs_row, attribute_prefix, source_lang_dict)
 
 def get_elasticsearch(settings):
     return Elasticsearch(settings.MOJP_ELASTICSEARCH_DB), settings.MOJP_ELASTICSEARCH_INDEX
+
+
+def parse_import_func_parameter(value, *args):
+    if value and value.startswith("(") and value.endswith(")"):
+        cmdparts = value[1:-1].split(":")
+        cmdmodule = cmdparts[0]
+        cmdfunc = cmdparts[1]
+        cmdargs = cmdparts[2] if len(cmdparts) > 2 else None
+        func = importlib.import_module(cmdmodule)
+        for part in cmdfunc.split("."):
+            func = getattr(func, part)
+        if cmdargs == "args":
+            value = func(*args)
+        else:
+            value = func()
+    return value

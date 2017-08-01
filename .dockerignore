@@ -5,13 +5,14 @@
 .ipynb_checkpoints
 .tox
 data
-tests
 .dpp.db
 .env
 .env.example
 .travis.yml
 *.md
-tox.ini
 docker-compose*
 .data-docker
 *.enc
+.docker/.data
+__pycache__
+**/*.pyc

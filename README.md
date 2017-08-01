@@ -15,46 +15,52 @@ This project provides pipelines that sync data from multiple external sources to
 ### Running the full pipelines environment using docker
 
 * Install Docker and Docker Compose (refer to Docker guides for your OS)
-* `cp docker-compose.override.yml.example.full docker-compose.override.yml`
+* `cp .docker/docker-compose.override.yml.example.full docker-compose.override.yml`
 * edit docker-compose.override.yml and modify settings (most likely you will need to set the CLEARMASH_CLIENT_TOKEN
-* `make docker-pull`
-* `make docker-build-all`
-* `make docker-start`
+* `bin/docker/build_all.sh`
+* `bin/docker/start.sh`
 
 This will provide:
 
 * Pipelines dashboard: http://localhost:5000/
 * PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
 * Elasticsearch server: localhost:19200
-* Data files under: .data-docker/
+* Data files under: .docker/.data
 
-After every change in the code you should run `make docker-build && make docker-start`
+After every change in the code you should run `bin/docker/build.sh && bin/docker/start.sh`
 
+Additional features:
+
+* Kibana for visualizations over Elasticsearch
+  * `docker-compose up -d kibana`
+  * http://localhost:15601
+* Adminer web interface for the postgresql db
+  * `docker-compose up -d adminer`
+  * http://localhost:18080/?pgsql=db&username=postgres
+  * default password is 123456
+
+Running the tests using docker
+
+* Build the tests image
+  * `bin/docker/build_tests.sh`
+* Run the tests
+  * `bin/docker/run_tests.sh`
+* Make changes to the code
+* Re-run the tests (no need to build again in most cases)
+  * `bin/docker/run_tests.sh`
 
 ### Running the pipelines locally
 
 Make sure you have Python 3.6 in a virtualenv
 
 * `make install`
-* `make test`
-* `dpp`
-
-
-### Connecting the local pipelines to the docker services
-
-Assuming you created your docker-compose based on docker-compose.override.yml.example.full
-
-* edit docker-compose.override.yml and uncomment the line that disable the app (not required but recommended)
-* copy the elasticsearch and postgresql variables from .env.example.full to your .env file
-* pip install psycopg2
-
-Now, each time, before running you should setup the following environment variables:
-
+* `cp .env.example.full .env`
+* modify .env as needed
+  * most likely you will need to connect to the db / elasticsearch instances
+  * the default file connects to the docker instances, so if you ran `bin/docker/start.sh` it should work as is
 * `source .env`
 * `export DPP_DB_ENGINE=$DPP_DB_ENGINE`
-
-Then you can run dpp
-
+* `make test`
 * `dpp`
 
 

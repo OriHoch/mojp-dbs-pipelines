@@ -25,9 +25,7 @@ def get_connection(session=None, engine=None, connection_string=None):
     return session.connection()
 
 
-def get_reflect_metadata(bind=None):
-    if not bind:
-        bind = get_connection()
-    metadata = MetaData(bind=bind)
-    metadata.reflect()
-    return metadata
+def get_reflect_metadata(session):
+    meta = MetaData(bind=session.connection())
+    meta.reflect()
+    return meta

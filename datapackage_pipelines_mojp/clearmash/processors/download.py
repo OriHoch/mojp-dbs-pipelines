@@ -55,7 +55,7 @@ class Processor(BaseProcessor):
         if not self._override_item_ids or str(row["item_id"]) in self._override_item_ids:
             return True
         else:
-            logging.info("item_id {} not in override item ids".format(row["item_id"]))
+            # logging.info("item_id {} not in override item ids".format(row["item_id"]))
             return False
 
     def _flush_rows_buffer(self):

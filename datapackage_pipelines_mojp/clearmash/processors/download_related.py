@@ -1,4 +1,5 @@
 from datapackage_pipelines_mojp.clearmash.processors.download import Processor as DownloadProcessor
+import logging
 
 
 class Processor(DownloadProcessor):
@@ -24,19 +25,23 @@ class Processor(DownloadProcessor):
 
     def _filter_resource(self, resource_descriptor, resource_data):
         for row in resource_data:
-            if self._check_override_item(row):
+            if row["collection"] and self._check_override_item(row):
+                # item has a collection - this is important to ensure we don't download related of related (which causes problems)
                 for field_id, related_documents in self._get_clearmash_api().related_documents.get_for_doc(row).items():
-                    related_document_ids = related_documents.first_page_results
-                    if len(related_document_ids) > 0:
-                        if len(self._all_downloaded_document_ids) == 0:
-                            num_exists = 0
-                        else:
-                            num_exists = sum([1 for doc_id in self._all_downloaded_document_ids if doc_id in related_document_ids])
-                        if self._parameters.get("only-download-new"):
-                            if num_exists == 0:
+                    if related_documents.total_count < 50:
+                        related_document_ids = related_documents.first_page_results
+                        if len(related_document_ids) > 0:
+                            if len(self._all_downloaded_document_ids) == 0:
+                                num_exists = 0
+                            else:
+                                num_exists = sum([1 for doc_id in self._all_downloaded_document_ids if doc_id in related_document_ids])
+                            if self._parameters.get("only-download-new"):
+                                if num_exists == 0:
+                                    yield from self._fetch_related_documents(related_documents)
+                            elif num_exists < len(related_document_ids):
                                 yield from self._fetch_related_documents(related_documents)
-                        elif num_exists < len(related_document_ids):
-                            yield from self._fetch_related_documents(related_documents)
+                    else:
+                        logging.warning("too many related documents, skipping ({} / {})".format(related_documents.entity_id, field_id))
 
 
 if __name__ == '__main__':

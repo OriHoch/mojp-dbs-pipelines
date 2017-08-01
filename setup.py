@@ -17,7 +17,8 @@ setup(
                       "python-dotenv",
                       "elasticsearch",
                       "pyquery",
-                      "iso-639"],
+                      "iso-639",
+                      "psycopg2"],
     extras_require={'develop': ["tox",
                                 "pytest",
                                 "mock"]
