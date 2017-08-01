@@ -10,7 +10,6 @@ class Processor(BaseProcessor):
         super(Processor, self).__init__(*args, **kwargs)
         self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         if self._override_collections:
-            self._override_collections = self._override_collections.split(",")
             logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
 
     @classmethod

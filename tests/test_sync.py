@@ -51,7 +51,13 @@ def test_sync():
     es_docs = [es_doc(es, "clearmash", id) for id in ["115306", "115325", "115800", "115318", "115301"]]
     assert len(es_docs) == 5
     assert_dict(es_docs[0], {'slug_he': 'שםמשפחה_בן-עמרה', 'title_en': 'BEN AMARA', 'collection': 'familyNames',
-                             "keys": {'content_html_en', 'template_changeset_id', 'title_en_lc', 'changeset', 'slugs', 'item_id', 'metadata', 'slug_en', 'template_id', 'title_en_suggest', 'main_thumbnail_image_url', 'title_he_lc', 'version', 'source', 'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id', 'content_html_he', 'title_he_suggest', 'item_url'}})
+                             "keys": {'content_html_en', 'template_changeset_id', 'title_en_lc', 'changeset', 'slugs',
+                                      'item_id', 'metadata', 'slug_en', 'template_id', 'title_en_suggest',
+                                      'main_thumbnail_image_url', 'title_he_lc', 'version', 'source',
+                                      'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id',
+                                      'content_html_he', 'title_he_suggest', 'item_url',
+                                      'last_synced', 'hours_to_next_download', 'last_downloaded'}})
+
 
 def test_sync_with_invalid_collection():
     es = given_empty_elasticsearch_instance()
@@ -83,16 +89,16 @@ def test_sync_update():
     docs = assert_sync_processor([input_doc])
     assert_dict(docs[0], {'id': '115306',
                           'version': '6468918-f91ea044052746a2903d6ee60d9b374b',
-                          'sync_msg': 'no update needed'})
-    # title was not updated in ES because changed are synced based on version
-    assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "BEN AMARA"})
+                          'sync_msg': 'updated doc in ES'})
+    # we now update ES regardless of version, in the past title was not updated in ES because changes were based on version
+    assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "updated title"})
     # change the version as well
     input_doc = get_clearmash_convert_resource_data()[0]
     input_doc.update(title_en="updated title", version="updated version")
     docs = assert_sync_processor([input_doc])
     assert_dict(docs[0], {'id': '115306',
                           'version': 'updated version',
-                          'sync_msg': 'updated doc in ES (old version = "6468918-f91ea044052746a2903d6ee60d9b374b")'})
+                          'sync_msg': 'updated doc in ES'})
     # title was updated
     assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "updated title"})
 
@@ -113,7 +119,7 @@ def test_slugs():
     del input_doc["title_he"]
     input_doc["version"] = "updated version"
     doc = assert_sync_processor([input_doc])[0]
-    assert_dict(doc, {'id': '115306', 'sync_msg': 'updated doc in ES (old version = "6468918-f91ea044052746a2903d6ee60d9b374b")'})
+    assert_dict(doc, {'id': '115306', 'sync_msg': 'updated doc in ES'})
     # slugs are never deleted, instead the new slug was added (in this case a default slug because there was no title)
     assert_dict(es_doc(es, "clearmash", "115306"), {'slug_he': 'שםמשפחה_בן-עמרה',
                                                     'slug_en': ['familyname_115306', 'familyname_ben-amara']})

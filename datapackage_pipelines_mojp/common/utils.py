@@ -26,7 +26,7 @@ def get_elasticsearch(settings):
 
 
 def parse_import_func_parameter(value, *args):
-    if value and value.startswith("(") and value.endswith(")"):
+    if value and isinstance(value, str) and value.startswith("(") and value.endswith(")"):
         cmdparts = value[1:-1].split(":")
         cmdmodule = cmdparts[0]
         cmdfunc = cmdparts[1]

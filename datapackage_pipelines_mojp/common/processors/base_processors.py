@@ -2,6 +2,8 @@ from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines_mojp import settings as mojp_settings
 from itertools import chain
 from datapackage_pipelines_mojp.common.db import get_session, MetaData
+import logging
+
 
 class BaseProcessor(object):
     """
@@ -130,3 +132,10 @@ class BaseProcessor(object):
 
     def _get_new_db_session(self):
         return get_session()
+
+    def _warn_once(self, msg):
+        if not hasattr(self, "_warned_once"):
+            self._warned_once = []
+        if msg not in self._warned_once:
+            self._warned_once.append(msg)
+            logging.warning(msg)
