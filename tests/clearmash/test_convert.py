@@ -40,3 +40,11 @@ def test_clearmash_convert():
     assert_dict(resource[2], {"collection": "movies"})
     assert_dict(resource[3], {"collection": "personalities"})
     assert_dict(resource[4], {"collection": "photoUnits"})
+
+
+def test_clearmash_convert_images():
+    resource = get_clearmash_convert_resource_data()
+    photo = resource[4]
+    assert photo["id"] == "115301"
+    assert photo["main_image_url"] == "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_1024x0.JPG"
+    assert photo["main_thumbnail_image_url"] == "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_260x0.JPG"

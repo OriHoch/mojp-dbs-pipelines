@@ -143,10 +143,11 @@ class ClearmashMediaGalleries(object):
                         gallery_items.append({
                             "__type": gallery_item.pop("__type"),
                             "ItemDocument": parse_clearmash_document_field(item_document),
-                            "PosterImageUrl": gallery_item.pop("PosterImageUrl"),
+                            "PosterImageUrl": gallery_item.pop("PosterImageUrl", None),
+                            "MediaUrl": gallery_item.pop("MediaUrl", None),
                             "MediaUrls": media_urls
                         })
-                        assert len(gallery_item) == 0
+                        assert len(gallery_item) == 0, gallery_item
                     gallery_main_document = parse_clearmash_document_field(gallery.pop("GalleryMainDocument"))
                     assert len(gallery) == 0
                     res[field_id].append(cls(field_id, gallery_items, gallery_main_document))
