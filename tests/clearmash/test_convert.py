@@ -47,12 +47,12 @@ def test_clearmash_convert():
     assert_dict(resource[3], {"collection": "personalities"})
     assert_dict(resource[4],
                 {"collection": "photoUnits", "id": "115301",
-                 "main_image_url": "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_1024x0.JPG",
-                 "main_thumbnail_image_url": "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_260x0.JPG"})
+                 "main_image_url": "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_1024x1024.JPG",
+                 "main_thumbnail_image_url": "https://bhfiles.clearmash.com/MediaServer/Images/5ff94861dad3480c9e59f1904a825caf_260x260.JPG"})
 
 def test_clearmash_convert_photoUnits():
     entity_ids = [{"item_id": 203884, "collection": "photoUnits"},]
     resource = get_clearmash_convert_resource_data(get_downloaded_docs(entity_ids))
     assert len(resource) == 1
-    assert_dict(resource[0], {'main_image_url': 'https://bhfiles.clearmash.com/MediaServer/Images/fff406c76ce942f9a37a19dcc061a36b_1024x0.JPG',
-                              'main_thumbnail_image_url': 'https://bhfiles.clearmash.com/MediaServer/Images/fff406c76ce942f9a37a19dcc061a36b_260x0.JPG'})
+    assert_dict(resource[0], {'main_image_url': 'https://bhfiles.clearmash.com/MediaServer/Images/fff406c76ce942f9a37a19dcc061a36b_1024x1024.JPG',
+                              'main_thumbnail_image_url': 'https://bhfiles.clearmash.com/MediaServer/Images/fff406c76ce942f9a37a19dcc061a36b_260x260.JPG'})
