@@ -3,6 +3,7 @@ from datapackage_pipelines_mojp.clearmash.constants import CLEARMASH_SOURCE_ID
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, ClearmashRelatedDocuments
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.common.utils import populate_iso_639_language_field
+from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
 import logging
 
 
@@ -23,14 +24,7 @@ class Processor(BaseProcessor):
         return ClearmashApi()
 
     def _doc_show_filter(self, dbs_row):
-        working_status = dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_working_status', [{}])[0].get("en")
-        rights = dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_rights', [{}])[0].get("en")
-        display_status = dbs_row["source_doc"]["parsed_doc"].get('_c6_beit_hatfutsot_bh_base_template_display_status', [{}])[0].get("en")
-        if bool(working_status == 'Completed' and rights == 'Full' and display_status not in ['Internal Use']):
-            return True
-        else:
-            logging.info("item '{}' failed show filter '{}'/'{}'/'{}'".format(dbs_row["id"], working_status, rights, display_status))
-            return False
+        return doc_show_filter(dbs_row["source_doc"]["parsed_doc"])
 
     def _get_related_documents(self, cm_row):
         related_documents_config = self._parameters.get("related-documents")
