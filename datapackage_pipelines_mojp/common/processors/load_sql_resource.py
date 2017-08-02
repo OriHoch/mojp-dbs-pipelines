@@ -11,11 +11,16 @@ class LoadSqlResource(BaseProcessor):
         return super(LoadSqlResource, self)._process(*args, **kwargs)
 
     def _get_schema(self):
-        with open(self._parameters["datapackage"]) as f:
-            for resource in json.load(f)["resources"]:
-                if resource["name"] == self._parameters["load-resource"]:
-                    self._schema = resource["schema"]
-                    return self._schema
+        schema = self._parameters.get("schema")
+        if schema:
+            self._schema = parse_import_func_parameter(schema)
+            return self._schema
+        else:
+            with open(self._parameters["datapackage"]) as f:
+                for resource in json.load(f)["resources"]:
+                    if resource["name"] == self._parameters["load-resource"]:
+                        self._schema = resource["schema"]
+                        return self._schema
 
     def _get_id_column(self):
         primary_keys = self._schema.get("primaryKey")

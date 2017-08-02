@@ -22,7 +22,7 @@ def test():
                   "id-field": "item_id",
                   "fields":{
                       "last_synced": "(datetime:datetime.now)",
-                      "hours_to_next_sync": "(datapackage_pipelines_mojp.clearmash.pipeline_funcs:hours_to_next_sync:args)"}}
+                      "hours_to_next_sync": 5}}
     fields = [{"name": "item_id", "type": "integer"},
               {"name": "last_synced", "type": "datetime"},
               {"name": "hours_to_next_sync", "type": "integer"}]

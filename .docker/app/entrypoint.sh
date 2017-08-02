@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# tests directory has some pipelines which we do need in the docker for tests, but don't want to appear in pipelines
+# this is the best way to do it - tests app uses a different entrypoint, so tests directory will remain
+rm -rf tests/
+
 if [ "${1}" == "" ]; then
     dpp init
     rm -f *.pid

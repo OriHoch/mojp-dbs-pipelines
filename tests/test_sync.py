@@ -3,17 +3,14 @@ from .clearmash.test_convert import get_clearmash_convert_resource_data
 from .common import (assert_processor, get_mock_settings, assert_dict, given_empty_elasticsearch_instance,
                      es_doc)
 
-
 def assert_sync_processor(input_data=None):
     if not input_data:
         input_data = get_clearmash_convert_resource_data()
     processor = CommonSyncProcessor(parameters={"input-resource": "entities", "output-resource": "dbs-docs"},
-                                    datapackage={"resources": [
-                                        {"name": "entities"}]},
+                                    datapackage={"resources": [{"name": "entities"}]},
                                     resources=[input_data],
                                     settings=get_mock_settings())
     return assert_processor(processor)
-
 
 def assert_item_missing_content(content_html_en, content_html_he, is_synced):
     given_empty_elasticsearch_instance()
@@ -32,7 +29,6 @@ def assert_item_missing_content(content_html_en, content_html_he, is_synced):
     else:
         assert len(docs) == 0
 
-
 def test_sync():
     es = given_empty_elasticsearch_instance()
     docs = assert_sync_processor()
@@ -49,17 +45,18 @@ def test_sync():
                           'source': 'clearmash',
                           'collection': 'places',
                           'keys': []})
-    assert_dict(docs[2], {'id': '115800', 'version': '6468918-460fe9869c46412db95daa136634be57',
-                          'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'movies', 'keys': []})
-    assert_dict(docs[3], {'id': '115318', 'version': '6468918-ec135e2eb4a54022a4ece9e2ce4f46c4',
-                          'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'personalities', 'keys': []})
-    assert_dict(docs[4], {'id': '115301', 'version': '6468918-6de9cf72a9ae4cc690a6c2437d21e0a6',
-                          'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'photoUnits', 'keys': []})
-    es_docs = [es_doc(es, "clearmash", id)
-               for id in ["115306", "115325", "115800", "115318", "115301"]]
+    assert_dict(docs[2], {'id': '115800', 'version': '6468918-460fe9869c46412db95daa136634be57', 'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'movies', 'keys': []})
+    assert_dict(docs[3], {'id': '115318', 'version': '6468918-ec135e2eb4a54022a4ece9e2ce4f46c4', 'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'personalities', 'keys': []})
+    assert_dict(docs[4], {'id': '115301', 'version': '6468918-6de9cf72a9ae4cc690a6c2437d21e0a6', 'sync_msg': 'added to ES', 'source': 'clearmash', 'collection': 'photoUnits', 'keys': []})
+    es_docs = [es_doc(es, "clearmash", id) for id in ["115306", "115325", "115800", "115318", "115301"]]
     assert len(es_docs) == 5
     assert_dict(es_docs[0], {'slug_he': 'שםמשפחה_בן-עמרה', 'title_en': 'BEN AMARA', 'collection': 'familyNames',
-                             "keys": {'content_html_en', 'template_changeset_id', 'title_en_lc', 'changeset', 'slugs', 'item_id', 'metadata', 'slug_en', 'template_id', 'title_en_suggest', 'main_thumbnail_image_url', 'title_he_lc', 'version', 'source', 'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id', 'content_html_he', 'title_he_suggest', 'item_url'}})
+                             "keys": {'content_html_en', 'template_changeset_id', 'title_en_lc', 'changeset', 'slugs',
+                                      'item_id', 'metadata', 'slug_en', 'template_id', 'title_en_suggest',
+                                      'main_thumbnail_image_url', 'title_he_lc', 'version', 'source',
+                                      'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id',
+                                      'content_html_he', 'title_he_suggest', 'item_url',
+                                      'last_synced', 'hours_to_next_download', 'last_downloaded'}})
 
 
 def test_sync_with_invalid_collection():
@@ -72,7 +69,6 @@ def test_sync_with_invalid_collection():
     docs = assert_sync_processor([input_doc])
     assert_dict(docs[0], {'id': '115306', 'sync_msg': 'added to ES'})
     assert_dict(es_doc(es, "clearmash", '115306'), {"collection": "unknown"})
-
 
 def test_sync_update():
     # do initial sync for a specific doc to ES
@@ -93,20 +89,18 @@ def test_sync_update():
     docs = assert_sync_processor([input_doc])
     assert_dict(docs[0], {'id': '115306',
                           'version': '6468918-f91ea044052746a2903d6ee60d9b374b',
-                          'sync_msg': 'no update needed'})
-    # title was not updated in ES because changed are synced based on version
-    assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "BEN AMARA"})
+                          'sync_msg': 'updated doc in ES'})
+    # we now update ES regardless of version, in the past title was not updated in ES because changes were based on version
+    assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "updated title"})
     # change the version as well
     input_doc = get_clearmash_convert_resource_data()[0]
     input_doc.update(title_en="updated title", version="updated version")
     docs = assert_sync_processor([input_doc])
     assert_dict(docs[0], {'id': '115306',
                           'version': 'updated version',
-                          'sync_msg': 'updated doc in ES (old version = "6468918-f91ea044052746a2903d6ee60d9b374b")'})
+                          'sync_msg': 'updated doc in ES'})
     # title was updated
-    assert_dict(es_doc(es, "clearmash", "115306"),
-                {"title_en": "updated title"})
-
+    assert_dict(es_doc(es, "clearmash", "115306"), {"title_en": "updated title"})
 
 def test_slugs():
     es = given_empty_elasticsearch_instance()
@@ -118,49 +112,36 @@ def test_slugs():
     doc = assert_sync_processor([input_doc])[0]
     assert_dict(doc, {'id': '115306', 'sync_msg': 'added to ES'})
     # slugs are generated from the titles by the sync processor
-    assert_dict(es_doc(es, "clearmash", "115306"), {
-                'slug_he': 'שםמשפחה_בן-עמרה', 'slug_en': 'familyname_ben-amara'})
+    assert_dict(es_doc(es, "clearmash", "115306"), {'slug_he': 'שםמשפחה_בן-עמרה', 'slug_en': 'familyname_ben-amara'})
     input_doc = get_clearmash_convert_resource_data()[0]
     # update the same doc - delete the titles
     del input_doc["title_en"]
     del input_doc["title_he"]
     input_doc["version"] = "updated version"
     doc = assert_sync_processor([input_doc])[0]
-    assert_dict(doc, {
-                'id': '115306', 'sync_msg': 'updated doc in ES (old version = "6468918-f91ea044052746a2903d6ee60d9b374b")'})
+    assert_dict(doc, {'id': '115306', 'sync_msg': 'updated doc in ES'})
     # slugs are never deleted, instead the new slug was added (in this case a default slug because there was no title)
     assert_dict(es_doc(es, "clearmash", "115306"), {'slug_he': 'שםמשפחה_בן-עמרה',
                                                     'slug_en': ['familyname_115306', 'familyname_ben-amara']})
 
-
 def test_item_without_content_should_not_be_synced():
-    assert_item_missing_content(
-        content_html_en="del", content_html_he="del", is_synced=False)
-    assert_item_missing_content(
-        content_html_en="a", content_html_he="del", is_synced=True)
-    assert_item_missing_content(
-        content_html_en="", content_html_he="", is_synced=False)
-    assert_item_missing_content(
-        content_html_en="a", content_html_he="", is_synced=True)
-    assert_item_missing_content(
-        content_html_en=None, content_html_he=None, is_synced=False)
-    assert_item_missing_content(
-        content_html_en="a", content_html_he=None, is_synced=True)
-
+    assert_item_missing_content(content_html_en="del", content_html_he="del", is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he="del", is_synced=True)
+    assert_item_missing_content(content_html_en="", content_html_he="", is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he="", is_synced=True)
+    assert_item_missing_content(content_html_en=None, content_html_he=None, is_synced=False)
+    assert_item_missing_content(content_html_en="a", content_html_he=None, is_synced=True)
 
 def test_unique_slugs():
     es = given_empty_elasticsearch_instance()
     input_doc = get_clearmash_convert_resource_data()[0]
     assert_sync_processor([input_doc])
     # got the standard slugs
-    assert_dict(es_doc(es, "clearmash", "115306"), {
-                'slugs': ['familyname_ben-amara', 'שםמשפחה_בן-עמרה']})
+    assert_dict(es_doc(es, "clearmash", "115306"), {'slugs': ['familyname_ben-amara', 'שםמשפחה_בן-עמרה']})
     # add a different doc in the same collection which will have the same slug (case insensitive)
     input_doc = get_clearmash_convert_resource_data()[1]
     assert input_doc["id"] == "115325"
-    input_doc.update(title_en="Ben AmArA", version="2",
-                     collection="familyNames")
+    input_doc.update(title_en="Ben AmArA", version="2", collection="familyNames")
     assert_sync_processor([input_doc])
     # got a different slug, to prevent slug conflict
-    assert_dict(es_doc(es, "clearmash", "115325"), {
-                'slugs': ['familyname_ben-amara-115325', 'שםמשפחה_נשאטל']})
+    assert_dict(es_doc(es, "clearmash", "115325"), {'slugs': ['familyname_ben-amara-115325', 'שםמשפחה_נשאטל']})
