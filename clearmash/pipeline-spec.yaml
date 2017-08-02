@@ -33,6 +33,13 @@ download-entities:
         input-resource: entity-ids
         output-resource: entities
         table: clearmash-entities
+    # deletes entities not allowed for display in ES
+    - run: ..datapackage_pipelines_mojp.common.processors.delete
+      parameters:
+        resource: entities
+        id-field: item_id
+        source: clearmash
+        display-allowed-field: display_allowed
     - run: dump.to_sql
       parameters:
         tables:
@@ -61,6 +68,13 @@ download-related-entities:
         input-resource: entities
         output-resource: related-entities
         table: clearmash-entities
+    # deletes entities not allowed for display in ES
+    - run: ..datapackage_pipelines_mojp.common.processors.delete
+      parameters:
+        resource: entities
+        id-field: item_id
+        source: clearmash
+        display-allowed-field: display_allowed
     - run: dump.to_sql
       parameters:
         tables:
