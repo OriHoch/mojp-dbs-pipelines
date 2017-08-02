@@ -22,9 +22,10 @@ class CommonSyncProcessor(BaseProcessor):
 
     def _filter_row(self, row):
         if not self._pre_validate_row(row):
+            self._warn_once("rows are skipped because they failed pre validation")
             return None
         else:
-            logging.info("processing row ({source}:{collection},{id}@{version}".format(
+            logging.info("{source}:{collection},{id}@{version}".format(
                 source=row.get("source"), collection=row.get("collection"),
                 version=row.get("version"), id=row.get("id")))
             original_row = deepcopy(row)
@@ -62,16 +63,16 @@ class CommonSyncProcessor(BaseProcessor):
         return self._get_sync_response(new_doc, "added to ES")
 
     def _update_doc(self, new_doc, old_doc):
-        if old_doc["version"] != new_doc["version"]:
-            self._update_doc_slugs(new_doc, old_doc)
-            with temp_loglevel(logging.ERROR):
-                self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
-                                id="{}_{}".format(
-                                    new_doc["source"], new_doc["source_id"]),
-                                body=new_doc)
-            return self._get_sync_response(new_doc, "updated doc in ES (old version = {})".format(json.dumps(old_doc["version"])))
-        else:
-            return self._get_sync_response(new_doc, "no update needed")
+        if old_doc["version"] == new_doc["version"]:
+            self._warn_once("rows are updated even though version is the same")
+        self._update_doc_slugs(new_doc, old_doc)
+        with temp_loglevel(logging.ERROR):
+            self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
+                            id="{}_{}".format(
+                                new_doc["source"], new_doc["source_id"]),
+                            body=new_doc)
+        return self._get_sync_response(new_doc, "updated doc in ES")
+
 
     def _update_doc_slugs(self, new_doc, old_doc):
         # aggregate the new and old doc slugs - so that we will never delete any existing slugs, only add new ones
@@ -99,12 +100,17 @@ class CommonSyncProcessor(BaseProcessor):
     def _pre_validate_row(self, row):
         content_html_he = row.get("content_html_he", "")
         content_html_en = row.get("content_html_en", "")
-        return ((content_html_he is not None and len(content_html_he) > 0)
-                or (content_html_en is not None and len(content_html_en) > 0))
+        if ((content_html_he is not None and len(content_html_he) > 0)
+            or (content_html_en is not None and len(content_html_en) > 0)):
+            return True
+        else:
+            self._warn_once("rows are skipped because they are missing content_html in hebrew or english (or both)")
+            return False
 
     def _validate_collection(self, new_doc):
         if "collection" not in new_doc or new_doc["collection"] not in constants.ALL_KNOWN_COLLECTIONS:
             new_doc["collection"] = constants.COLLECTION_UNKNOWN
+            self._warn_once("rows get collection=unknown because they don't have a collection or the collection is unknown")
 
     def _initialize_new_doc(self, row, source_doc):
         # the source doc is used as the base for the final es doc
@@ -154,6 +160,7 @@ class CommonSyncProcessor(BaseProcessor):
         # ensure every doc has at least 1 slug (in any language)
         if len(slugs) == 0:
             # add english slug comprised of doc id
+            self._warn_once("docs are added a default slug (probably due to missing title)")
             self._add_slug(new_doc, new_doc["source_id"], "en")
             slug = new_doc["slug_en"]
             slug = self._ensure_slug_uniqueness(slug, new_doc)

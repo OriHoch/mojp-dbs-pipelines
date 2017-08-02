@@ -34,25 +34,32 @@ def assert_downloaded_doc(actual, expected):
     assert_dict(actual, expected)
 
 
-def run_download_processor():
+def run_download_processor(input_data=None):
+    if not input_data:
+        input_data = [{"item_id": 115306, "collection": "familyNames"},
+                      {"item_id": 115325, "collection": "places"},
+                      {"item_id": 115800, "collection": "movies"},
+                      {"item_id": 115318, "collection": "personalities"},
+                      {"item_id": 115301, "collection": "photoUnits"}]
     settings = get_mock_settings(OVERRIDE_CLEARMASH_ITEM_IDS="")
     parameters = {"input-resource": "entity-ids", "output-resource": "entities"}
     datapackage = {"resources": [{"name": "entity-ids"}]}
-    resources = [[{"item_id": 115306, "collection": "familyNames"},
-                  {"item_id": 115325, "collection": "places"},
-                  {"item_id": 115800, "collection": "movies"},
-                  {"item_id": 115318, "collection": "personalities"},
-                  {"item_id": 115301, "collection": "photoUnits"}]]
+    resources = [input_data]
     return MockClearmashDownloadProcessor(parameters, datapackage, resources, settings).spew()
 
-def get_downloaded_docs():
-    datapackage, resources = run_download_processor()
+def get_downloaded_docs(input_data=None):
+    if input_data:
+        expected_len = None
+    else:
+        expected_len = 5
+    datapackage, resources = run_download_processor(input_data)
     assert len(datapackage["resources"]) == 1
     assert datapackage["resources"][0]["name"] == "entities"
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])
-    assert len(resource) == 5
+    if expected_len:
+        assert len(resource) == expected_len
     return resource
 
 def test_clearmash_download():
@@ -64,7 +71,7 @@ def test_clearmash_download():
                                         "template_id": "_c6_beit_hatfutsot_bh_family_name",
                                         "changeset": 6468918,
                                         "collection": "familyNames",
-                                        "keys": [],
+                                        "keys": ['hours_to_next_download', 'last_downloaded', 'last_synced'],
                                         "parsed_doc": {"entity_name": {'en': 'BEN AMARA', 'he': 'בן עמרה'},
                                                        "entity_id": 115306,
                                                        "entity_type_id": 1009,

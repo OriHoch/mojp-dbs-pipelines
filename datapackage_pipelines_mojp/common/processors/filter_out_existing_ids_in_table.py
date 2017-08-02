@@ -1,5 +1,6 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 import logging
+from datapackage_pipelines_mojp.common.utils import parse_import_func_parameter
 
 
 class Processor(BaseProcessor):
@@ -17,10 +18,13 @@ class Processor(BaseProcessor):
         return super(Processor, self)._process(datapackage, resources)
 
     def _filter_row(self, row):
-        if int(row[self._parameters["id-field"]]) in self._existing_ids:
+        is_in_existing_ids = int(row[self._parameters["id-field"]]) in self._existing_ids
+        filter_row = self._parameters.get("filter-row")
+        if filter_row:
+            return parse_import_func_parameter(filter_row, row, is_in_existing_ids)
+        elif is_in_existing_ids:
             return None
         else:
-            # logging.info("new id: {}".format(row[self._parameters["id-field"]]))
             return row
 
 if __name__ == '__main__':

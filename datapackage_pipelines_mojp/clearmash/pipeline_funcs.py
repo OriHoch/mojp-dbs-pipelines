@@ -1,4 +1,6 @@
 import logging, os
+from datapackage_pipelines_mojp.clearmash.processors.download import CLEARMASH_DOWNLOAD_SCHEMA
+
 
 def get_override_item_ids_where():
     override_ids = os.environ.get("OVERRIDE_CLEARMASH_ITEM_IDS")
@@ -11,22 +13,13 @@ def get_override_item_ids_where():
         return None
 
 
-def download_new_entities_where():
-    return get_override_item_ids_where()
-
-
-def new_entities_sync_where():
-    where = "hours_to_next_sync = 0"
+def entities_sync_where():
+    where = "(last_synced IS NULL or last_downloaded > last_synced)"
     item_ids_where = get_override_item_ids_where()
     if item_ids_where:
         where = "{} and {}".format(where, item_ids_where)
     return where
 
 
-def hours_to_next_sync(val):
-    if not val or val == "0":
-        return 5
-    elif val < 24*7:
-        return val * 2
-    else:
-        return 24*7
+def entities_schema():
+    return CLEARMASH_DOWNLOAD_SCHEMA
