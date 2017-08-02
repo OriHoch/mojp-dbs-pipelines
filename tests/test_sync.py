@@ -145,4 +145,3 @@ def test_unique_slugs():
     assert_sync_processor([input_doc])
     # got a different slug, to prevent slug conflict
     assert_dict(es_doc(es, "clearmash", "115325"), {'slugs': ['familyname_ben-amara-115325', 'שםמשפחה_נשאטל']})
-

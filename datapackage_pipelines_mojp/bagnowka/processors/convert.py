@@ -13,27 +13,29 @@ class BagnowkaConvertProcessor(BaseProcessor):
         return DBS_DOCS_TABLE_SCHEMA
 
     def _filter_resource(self, resource_descriptor, resource_data):
-        for cm_row in resource_data:
-            dbs_row = self._cm_row_to_dbs_row(cm_row)
+        for bagnowka_row in resource_data:
+            dbs_row = self.bagnowka_row_to_dbs_row(bagnowka_row)
             yield dbs_row
 
-    def _cm_row_to_dbs_row(self, cm_row):
+    def bagnowka_row_to_dbs_row(self, bagnowka_row):
+
         dbs_row = {"source": "Bagnowka",
-                "id": cm_row["id"],
-                "source_doc": cm_row,
-                "version": "one",
-                "title": {"title_en": cm_row["name"]},
-                "collection": "photoUnits",
-                "main_image_url": "",
-                "main_thumbnail_image_url": "",
-                "title_en": cm_row["name"], 
-                "title_he": "",
-                "content_html": {"content_en": cm_row["desc"], "content_he": ""},
-                "content_html_en": "",
-                "content_html_he": "",
-                "related_documents": {}
-                }
+                   "id": bagnowka_row["id"],
+                   "version": "one",
+                   "title": {},
+                   "collection": "photoUnits",
+                   "main_image_url": bagnowka_row["main_image_url"],
+                   "main_thumbnail_image_url": bagnowka_row["main_thumbnail_url"],
+                   "title_en": bagnowka_row["name"],
+                   "title_he": "",
+                   "content_html": {},
+                   "content_html_en": bagnowka_row["desc"],
+                   "content_html_he": "",
+                   "related_documents": {},
+                   "source_doc": bagnowka_row
+                   }
         return dbs_row
+
 
 if __name__ == '__main__':
     BagnowkaConvertProcessor.main()

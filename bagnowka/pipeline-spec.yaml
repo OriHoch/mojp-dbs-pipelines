@@ -11,9 +11,6 @@ download:
     - run: dump.to_path
       parameters:
         out-path: ../data/bagnowka/download
-    - run: add_metadata
-      parameters:
-        name: bagnowka-download
     - run: ..datapackage_pipelines_mojp.bagnowka.processors.convert
       parameters:
         input-resource: bagnowka
@@ -21,3 +18,12 @@ download:
     - run: dump.to_path
       parameters:
         out-path: ../data/bagnowka/convert
+
+    # sync to elasticsearch
+    - run: ..datapackage_pipelines_mojp.common.processors.sync
+      parameters:
+        input-resource: dbs-docs
+        output-resource: dbs-docs-sync-log
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bagnowka/sync
