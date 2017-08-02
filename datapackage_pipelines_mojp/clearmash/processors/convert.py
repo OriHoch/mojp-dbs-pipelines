@@ -108,8 +108,8 @@ class Processor(BaseProcessor):
                     if media_url:
                         image_url = media_url.replace("~~st~~", "https://bhfiles.clearmash.com/MediaServer/Images/")
                         tmp = image_url.split(".")
-                        main_image_url = ".".join(tmp[:-1]) + "_1024x0." + tmp[-1]
-                        main_thumbnail_image_url = ".".join(tmp[:-1]) + "_260x0." + tmp[-1]
+                        main_image_url = ".".join(tmp[:-1]) + "_1024x1024." + tmp[-1]
+                        main_thumbnail_image_url = ".".join(tmp[:-1]) + "_260x260." + tmp[-1]
             else:
                 logging.warning("did not find any media galleries (id={})".format(dbs_row["id"]))
         else:

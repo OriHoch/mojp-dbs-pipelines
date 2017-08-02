@@ -96,7 +96,7 @@ class Processor(BaseProcessor):
         if len(item_ids.keys()) > 0:
             for doc in parse_clearmash_documents(self._get_clearmash_api().get_documents(list(item_ids.keys()))):
                 hours_to_next_download, last_synced = 5, None
-                if self._db_table and int(doc["item_id"]) in self._existing_ids:
+                if self._db_table is not None and int(doc["item_id"]) in self._existing_ids:
                     last_downloaded, hours_to_next_download, last_synced = self._existing_ids[int(doc["item_id"])]
                     hours_to_next_download = hours_to_next_download * 2
                     if hours_to_next_download > 24*14:
