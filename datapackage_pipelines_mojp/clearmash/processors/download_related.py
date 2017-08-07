@@ -1,6 +1,7 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.clearmash.processors.download import CLEARMASH_DOWNLOAD_SCHEMA
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
+from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
 import logging, datetime
 
 
@@ -117,7 +118,8 @@ class Processor(BaseProcessor):
                 doc.update(collection="",
                            last_downloaded=datetime.datetime.now(),
                            hours_to_next_download=hours_to_next_download,
-                           last_synced=last_synced)
+                           last_synced=last_synced,
+                           display_allowed=doc_show_filter(doc["parsed_doc"]))
                 yield doc
 
     def _filter_resource(self, resource_descriptor, resource_data):
@@ -138,9 +140,12 @@ class Processor(BaseProcessor):
                                 yield from self._fetch_related_documents(related_documents)
                             else:
                                 self._warn_once("items are not fetched because they were already downloaded")
+                        # else:
+                          # no related documents
                     else:
-                        logging.warning("too many related documents, skipping ({} / {})".format(related_documents.entity_id, field_id))
-
+                        self._warn_once("items are skipped because they return too many related documents")
+            else:
+                self._warn_once("items are skipped due to negative response from check_override_parent_item")
 
 if __name__ == '__main__':
     Processor.main()

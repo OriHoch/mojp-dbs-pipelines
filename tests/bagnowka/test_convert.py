@@ -31,7 +31,7 @@ def test_converted_docs():
     assert docs[5]["title_en"] == "Grajewo - the people, soldiers, 1916"
 
 def assert_processor(processor):
-    datapackage, resources = processor.spew()
+    datapackage, resources, stats = processor.spew()
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])

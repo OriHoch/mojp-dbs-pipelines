@@ -56,7 +56,7 @@ def test_sync():
                                       'main_thumbnail_image_url', 'title_he_lc', 'version', 'source',
                                       'main_image_url', 'source_id', 'parsed_doc', 'title_he', 'document_id',
                                       'content_html_he', 'title_he_suggest', 'item_url',
-                                      'last_synced', 'hours_to_next_download', 'last_downloaded'}})
+                                      'last_synced', 'hours_to_next_download', 'last_downloaded', 'display_allowed'}})
 
 
 def test_sync_with_invalid_collection():

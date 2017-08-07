@@ -52,7 +52,7 @@ def get_downloaded_docs(input_data=None):
         expected_len = None
     else:
         expected_len = 5
-    datapackage, resources = run_download_processor(input_data)
+    datapackage, resources, stats = run_download_processor(input_data)
     assert len(datapackage["resources"]) == 1
     assert datapackage["resources"][0]["name"] == "entities"
     resources = list(resources)
@@ -71,7 +71,7 @@ def test_clearmash_download():
                                         "template_id": "_c6_beit_hatfutsot_bh_family_name",
                                         "changeset": 6468918,
                                         "collection": "familyNames",
-                                        "keys": ['hours_to_next_download', 'last_downloaded', 'last_synced'],
+                                        "keys": ['hours_to_next_download', 'last_downloaded', 'last_synced', 'display_allowed'],
                                         "parsed_doc": {"entity_name": {'en': 'BEN AMARA', 'he': 'בן עמרה'},
                                                        "entity_id": 115306,
                                                        "entity_type_id": 1009,
