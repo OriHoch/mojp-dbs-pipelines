@@ -71,7 +71,7 @@ download-related-entities:
     # deletes entities not allowed for display in ES
     - run: ..datapackage_pipelines_mojp.common.processors.delete
       parameters:
-        resource: entities
+        resource: related-entities
         id-field: item_id
         source: clearmash
         display-allowed-field: display_allowed
@@ -126,3 +126,28 @@ entities-sync:
     - run: dump.to_path
       parameters:
         out-path: ../data/clearmash/new-entities-sync
+
+entities-delete:
+  description: "go over all items in ElasticSearch and delete any items which are not in entities or have display_allowed=false"
+  schedule:
+    # daily at 06:00 (hopefully after sync is done)
+    crontab: "0 6 * * *"
+  pipeline:
+    # all all dbs docs from elasticsearch matching the given source
+    - run: ..datapackage_pipelines_mojp.common.processors.load_elasticsearch_dbs_docs
+      parameters:
+        source: clearmash
+        add-resource: clearmash-dbs-docs
+    # compares with DB table and only leave rows which should be deleted
+    - run: ..datapackage_pipelines_mojp.clearmash.processors.filter_elastsicsearch_docs_to_delete
+      parameters:
+        input-resource: clearmash-dbs-docs
+        output-resource: clearmash-dbs-docs-to-delete
+        table: clearmash-entities
+    # delete all input docs from elasticsearch
+    - run: ..datapackage_pipelines_mojp.common.processors.delete
+      parameters:
+        resource: clearmash-dbs-docs-to-delete
+        id-field: item_id
+        source: clearmash
+        delete-all-input: true

@@ -140,9 +140,12 @@ class Processor(BaseProcessor):
                                 yield from self._fetch_related_documents(related_documents)
                             else:
                                 self._warn_once("items are not fetched because they were already downloaded")
+                        # else:
+                          # no related documents
                     else:
-                        logging.warning("too many related documents, skipping ({} / {})".format(related_documents.entity_id, field_id))
-
+                        self._warn_once("items are skipped because they return too many related documents")
+            else:
+                self._warn_once("items are skipped due to negative response from check_override_parent_item")
 
 if __name__ == '__main__':
     Processor.main()

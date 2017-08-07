@@ -29,7 +29,7 @@ def test():
     datapackage = {"resources": [{"name": "entities", "schema": {"fields": fields}}]}
     processor = MockProcessor(parameters, datapackage, [load_sql_resource], settings)
     processor._test_db_session = session
-    datapackage, resources = processor.spew()
+    datapackage, resources, stats = processor.spew()
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])

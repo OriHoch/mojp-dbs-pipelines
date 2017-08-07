@@ -35,7 +35,7 @@ def run_load_sql_resource_processor(data_in_db, session=None):
         resources = []
         processor = MockProcessor(parameters, datapackage, resources, settings)
         processor._test_db_session = session
-        datapackage, resources = processor.spew()
+        datapackage, resources, stats = processor.spew()
         resources = list(resources)
         assert len(resources) == 1
         resource = list(resources[0])
