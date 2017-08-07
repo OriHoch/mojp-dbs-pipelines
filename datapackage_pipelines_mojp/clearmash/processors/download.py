@@ -1,6 +1,7 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents
 from datapackage_pipelines_mojp.clearmash.constants import DOWNLOAD_PROCESSOR_BUFFER_LENGTH
+from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
 import logging, datetime
 
 
@@ -24,7 +25,8 @@ CLEARMASH_DOWNLOAD_SCHEMA = {"fields": [{"name": "document_id", "type": "string"
                                          "description": "all other attributes"},
                                         {"name": "last_downloaded", "type": "datetime"},
                                         {"name": "hours_to_next_download", "type": "integer"},
-                                        {"name": "last_synced", "type": "datetime"}, ],
+                                        {"name": "last_synced", "type": "datetime"},
+                                        {"name": "display_allowed", "type": "boolean"}],
                              "primaryKey": ["item_id"]}
 
 
@@ -104,7 +106,8 @@ class Processor(BaseProcessor):
                 doc.update(collection=item_ids[doc["item_id"]],
                            last_downloaded=datetime.datetime.now(),
                            hours_to_next_download=hours_to_next_download,
-                           last_synced=last_synced)
+                           last_synced=last_synced,
+                           display_allowed=doc_show_filter(doc["parsed_doc"]))
                 yield doc
 
     def _get_clearmash_api(self):

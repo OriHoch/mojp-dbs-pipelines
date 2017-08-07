@@ -19,7 +19,7 @@ def test_clearmash_add_entity_ids():
     parameters = {"add-resource": "entity-ids"}
     datapackage = {"resources": []}
     resources = []
-    datapackage, resources = MockAddEntityIdsProcessor(parameters, datapackage, resources, settings).spew()
+    datapackage, resources, stats = MockAddEntityIdsProcessor(parameters, datapackage, resources, settings).spew()
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])

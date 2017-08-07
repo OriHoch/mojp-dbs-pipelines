@@ -49,7 +49,7 @@ def test_bagnowka_download():
     parameters = {"add-resource": "bagnowka"}
     datapackage = {"resources": []}
     resources = []
-    datapackage, resources = MockBagnowkaDownloadProcessor(
+    datapackage, resources, stats = MockBagnowkaDownloadProcessor(
         parameters, datapackage, resources).spew()
     return resources
     assert len(datapackage["resources"]) == 1

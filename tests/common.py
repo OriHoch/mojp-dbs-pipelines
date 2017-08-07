@@ -63,7 +63,7 @@ def get_mock_settings(**kwargs):
     return type("MockSettings", (object,), default_settings)
 
 def assert_processor(processor):
-    datapackage, resources = processor.spew()
+    datapackage, resources, stats = processor.spew()
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])

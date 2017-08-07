@@ -44,6 +44,7 @@ class BaseProcessor(object):
         else:
             self._input_resource = self._parameters["input-resource"]
             self._output_resource = self._parameters["output-resource"]
+        self._stats = {}
 
     @classmethod
     def main(cls):
@@ -54,7 +55,10 @@ class BaseProcessor(object):
 
     def spew(self):
         self._datapackage, self._resources = self._process(self._datapackage, self._resources)
-        return self._datapackage, self._resources
+        return self._datapackage, self._resources, self._get_stats()
+
+    def _get_stats(self):
+        return self._stats
 
     def _process(self, datapackage, resources):
         if self._add_resource:
