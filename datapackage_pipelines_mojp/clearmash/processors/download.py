@@ -49,6 +49,7 @@ class Processor(BaseProcessor):
                 logging.info("using OVERRIDE_CLEARMASH_ITEM_IDS env var: {}".format(self._override_item_ids))
 
     def _process(self, *args, **kwargs):
+        self._existing_ids = {}
         self._db_table = self._parameters.get("table")
         if self._db_table:
             self._db_table = self.db_meta.tables.get(self._db_table)
