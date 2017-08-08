@@ -33,9 +33,7 @@ class BagnowkaConvertProcessor(BaseProcessor):
                    "content_html_he": "",
                    "related_documents": {},
                    "source_doc": bagnowka_row,
-                   # TODO: add the images here, in this format:
-                   # [{'url': 'http://url.to.image', 'thumbnail_url': 'http://url.to.thumbnail.image'}, ...]
-                   'images': []
+                    "images": bagnowka_row["pictures"]
                    }
         return dbs_row
 
