@@ -1,7 +1,7 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.clearmash.processors.download import CLEARMASH_DOWNLOAD_SCHEMA
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
-from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
+from datapackage_pipelines_mojp.clearmash.common import doc_show_filter, check_download_ttl, update_download_ttl
 from datapackage_pipelines_mojp.clearmash.constants import TEMPLATE_ID_COLLECTION_MAP
 import logging, datetime
 
@@ -73,45 +73,15 @@ class Processor(BaseProcessor):
     def _check_override_related_item(self, related_document_id):
         # check if the related documents of an item are allowed
         related_item_id = self._existing_document_ids.get(related_document_id)
-        if related_item_id:
-            related_item_row = self._existing_item_ids[int(related_item_id)]
-            if related_item_row == True:
-                # item was previously downloaded in current run, skip download again
-                # self._warn_once("items are skipped because they were already downloaded")
-                return False
-            else:
-                # there is existing item in entities table
-                # determine according to ttl logic with last_downloaded and hours_to_next_download
-                last_downloaded, hours_to_next_download, last_synced = related_item_row
-                now = datetime.datetime.now()
-                next_download = last_downloaded + datetime.timedelta(hours=hours_to_next_download)
-                seconds_to_next_download = (next_download - now).total_seconds()
-                if seconds_to_next_download < 0:
-                    logging.info("downloading, seconds_to_next_download = {}".format(seconds_to_next_download))
-                    return True
-                else:
-                    self._warn_once("items are skipped due to ttl")
-                    return False
-        else:
-            # item is not in entities table - allow to download
-            return True
+        return check_download_ttl(self._existing_item_ids, related_item_id)
 
     def _fetch_related_documents(self, related_documents):
         # make the api call to get related documents
         for doc in related_documents.get_related_documents():
-            hours_to_next_download, last_synced = None, None
+            last_synced, hours_to_next_download = None, None
             document_id = doc["document_id"]
             item_id = self._existing_document_ids.get(document_id)
-            if item_id:
-                item_row = self._existing_item_ids[int(item_id)]
-                if item_row is not True:
-                    last_downloaded, hours_to_next_download, last_synced = self._existing_item_ids[int(item_id)]
-                    hours_to_next_download = hours_to_next_download * 2
-                    if hours_to_next_download > 24 * 14:
-                        hours_to_next_download = 24 * 14
-            else:
-                item_id = doc["item_id"]
-                hours_to_next_download = 5
+            last_synced, hours_to_next_download = update_download_ttl(self._existing_item_ids, item_id)
             if hours_to_next_download is not None:
                 # this signifies not to download again, regardless of ttls
                 self._existing_item_ids[item_id] = True

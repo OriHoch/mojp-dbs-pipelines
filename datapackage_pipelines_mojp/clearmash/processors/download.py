@@ -2,7 +2,7 @@ from datapackage_pipelines_mojp.common.processors.base_processors import BasePro
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents
 from datapackage_pipelines_mojp.clearmash.constants import (DOWNLOAD_PROCESSOR_BUFFER_LENGTH,
                                                             TEMPLATE_ID_COLLECTION_MAP)
-from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
+from datapackage_pipelines_mojp.clearmash.common import doc_show_filter, check_download_ttl, update_download_ttl
 import logging, datetime
 
 
@@ -53,6 +53,7 @@ class Processor(BaseProcessor):
         if self._db_table:
             self._db_table = self.db_meta.tables.get(self._db_table)
             if self._db_table is not None:
+                # TODO:  optimize
                 query = self.db_session.query(self._db_table.c.item_id,
                                               self._db_table.c.last_downloaded,
                                               self._db_table.c.hours_to_next_download,
@@ -86,17 +87,8 @@ class Processor(BaseProcessor):
             if self._db_table is None or int(row["item_id"]) not in self._existing_ids:
                 return True
             else:
-                last_downloaded, hours_to_next_download, last_synced = self._existing_ids[int(row["item_id"])]
-                now = datetime.datetime.now()
-                next_download = last_downloaded + datetime.timedelta(hours=hours_to_next_download)
-                seconds_to_next_download = (next_download - now).total_seconds()
-                if seconds_to_next_download < 0:
-                    logging.info("downloading, seconds_to_next_download = {}".format(seconds_to_next_download))
-                    return True
-                else:
-                    return False
+                return check_download_ttl(self._existing_ids, row["item_id"])
         else:
-            # logging.info("item_id {} not in override item ids".format(row["item_id"]))
             return False
 
     def _flush_rows_buffer(self):
@@ -104,12 +96,7 @@ class Processor(BaseProcessor):
         self._rows_buffer = []
         if len(item_ids.keys()) > 0:
             for doc in parse_clearmash_documents(self._get_clearmash_api().get_documents(list(item_ids.keys()))):
-                hours_to_next_download, last_synced = 5, None
-                if self._db_table is not None and int(doc["item_id"]) in self._existing_ids:
-                    last_downloaded, hours_to_next_download, last_synced = self._existing_ids[int(doc["item_id"])]
-                    hours_to_next_download = hours_to_next_download * 2
-                    if hours_to_next_download > 24*14:
-                        hours_to_next_download = 24*14
+                last_synced, hours_to_next_download = update_download_ttl(self._existing_ids, doc["item_id"])
                 doc.update(collection=TEMPLATE_ID_COLLECTION_MAP.get(doc["template_id"], "unknown"),
                            last_downloaded=datetime.datetime.now(),
                            hours_to_next_download=hours_to_next_download,
