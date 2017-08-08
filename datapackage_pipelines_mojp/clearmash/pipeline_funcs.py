@@ -1,5 +1,6 @@
 import logging, os
 from datapackage_pipelines_mojp.clearmash.processors.download import CLEARMASH_DOWNLOAD_SCHEMA
+from datapackage_pipelines_mojp.clearmash.processors.add_entity_ids import Processor as AddEntityIdsProcesor
 
 
 def get_override_item_ids_where():
@@ -23,3 +24,7 @@ def entities_sync_where():
 
 def entities_schema():
     return CLEARMASH_DOWNLOAD_SCHEMA
+
+
+def entity_ids_schema():
+    return AddEntityIdsProcesor._get_schema()

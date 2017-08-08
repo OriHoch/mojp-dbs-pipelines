@@ -23,8 +23,7 @@ download-entities:
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
       parameters:
         add-resource: entity-ids
-        datapackage: ../data/clearmash/entity-ids/datapackage.json
-        load-resource: entity-ids
+        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entity_ids_schema)
         load-table: clearmash-entity-ids
         where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:get_override_item_ids_where)
     # compares with clearmash-entities table (if exists) to determine if to re-download entities
@@ -56,8 +55,7 @@ download-related-entities:
     - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
       parameters:
         add-resource: entities
-        datapackage: ../data/clearmash/download-new-entities/datapackage.json
-        load-resource: entities
+        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_schema)
         load-table: clearmash-entities
     # gets all the document ids from related fields in the source entry
     # makes the call to get related fields only when needed
