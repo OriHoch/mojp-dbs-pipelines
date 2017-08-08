@@ -2,6 +2,7 @@ from datapackage_pipelines_mojp.common.processors.base_processors import BasePro
 from datapackage_pipelines_mojp.clearmash.processors.download import CLEARMASH_DOWNLOAD_SCHEMA
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
 from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
+from datapackage_pipelines_mojp.clearmash.constants import TEMPLATE_ID_COLLECTION_MAP
 import logging, datetime
 
 
@@ -52,34 +53,36 @@ class Processor(BaseProcessor):
         return ClearmashApi()
 
     def _check_override_parent_item(self, row):
+        # this checks if parent item is allowed
         if not self._override_item_ids or str(row["item_id"]) in self._override_item_ids:
             # either no override item ids, or item is included in override item ids
-            if row["collection"]:
+            if row["collection"] and row["collection"] != "unknown":
                 # main item from known collection
                 return True
             else:
-                # item without collection is most likely a related document
+                # item without collection or with unknown collection are most likely related documents
                 # to optimize we currently don't download relateds of relateds
-                # TODO: enable downloading relateds of relateds
+                # TODO: enable downloading relateds of relateds (check if it's needed or if it's a problem to do)
                 self._warn_once("items without collection are skipped")
                 return False
         else:
-            # item is not in override item ids
+            # parent item is not in override item ids
             self._warn_once("items are skipped to override ids env")
             return False
 
     def _check_override_related_item(self, related_document_id):
-        item_id = self._existing_document_ids.get(related_document_id)
-        if item_id:
-            item_row = self._existing_item_ids[int(item_id)]
-            if item_row == True:
+        # check if the related documents of an item are allowed
+        related_item_id = self._existing_document_ids.get(related_document_id)
+        if related_item_id:
+            related_item_row = self._existing_item_ids[int(related_item_id)]
+            if related_item_row == True:
                 # item was previously downloaded in current run, skip download again
-                self._warn_once("items are skipped because they were already downloaded")
+                # self._warn_once("items are skipped because they were already downloaded")
                 return False
             else:
                 # there is existing item in entities table
                 # determine according to ttl logic with last_downloaded and hours_to_next_download
-                last_downloaded, hours_to_next_download, last_synced = item_row
+                last_downloaded, hours_to_next_download, last_synced = related_item_row
                 now = datetime.datetime.now()
                 next_download = last_downloaded + datetime.timedelta(hours=hours_to_next_download)
                 seconds_to_next_download = (next_download - now).total_seconds()
@@ -94,28 +97,26 @@ class Processor(BaseProcessor):
             return True
 
     def _fetch_related_documents(self, related_documents):
+        # make the api call to get related documents
         for doc in related_documents.get_related_documents():
-            hours_to_next_download, last_synced = 5, None
+            hours_to_next_download, last_synced = None, None
             document_id = doc["document_id"]
             item_id = self._existing_document_ids.get(document_id)
-            skip_doc = False
             if item_id:
                 item_row = self._existing_item_ids[int(item_id)]
-                if item_row == True:
-                    self._warn_once("skipped items which were already in existing item ids")
-                    skip_doc = True
-                else:
+                if item_row is not True:
                     last_downloaded, hours_to_next_download, last_synced = self._existing_item_ids[int(item_id)]
                     hours_to_next_download = hours_to_next_download * 2
                     if hours_to_next_download > 24 * 14:
                         hours_to_next_download = 24 * 14
             else:
                 item_id = doc["item_id"]
-            if not skip_doc:
+                hours_to_next_download = 5
+            if hours_to_next_download is not None:
                 # this signifies not to download again, regardless of ttls
                 self._existing_item_ids[item_id] = True
                 self._existing_document_ids[document_id] = item_id
-                doc.update(collection="",
+                doc.update(collection=TEMPLATE_ID_COLLECTION_MAP.get(doc["template_id"], "unknown"),
                            last_downloaded=datetime.datetime.now(),
                            hours_to_next_download=hours_to_next_download,
                            last_synced=last_synced,

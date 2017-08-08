@@ -1,6 +1,7 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi, parse_clearmash_documents
-from datapackage_pipelines_mojp.clearmash.constants import DOWNLOAD_PROCESSOR_BUFFER_LENGTH
+from datapackage_pipelines_mojp.clearmash.constants import (DOWNLOAD_PROCESSOR_BUFFER_LENGTH,
+                                                            TEMPLATE_ID_COLLECTION_MAP)
 from datapackage_pipelines_mojp.clearmash.common import doc_show_filter
 import logging, datetime
 
@@ -29,8 +30,11 @@ CLEARMASH_DOWNLOAD_SCHEMA = {"fields": [{"name": "document_id", "type": "string"
                                         {"name": "display_allowed", "type": "boolean"}],
                              "primaryKey": ["item_id"]}
 
-
 class Processor(BaseProcessor):
+
+    STATS_DOWNLOADED = "items downloaded from clearmash"
+    STATS_ALLOWED = "items allowed for display"
+    STATS_NOT_ALLOWED = "items not allowed for display"
 
     def __init__(self, *args, **kwargs):
         super(Processor, self).__init__(*args, **kwargs)
@@ -64,6 +68,9 @@ class Processor(BaseProcessor):
         return CLEARMASH_DOWNLOAD_SCHEMA
 
     def _filter_resource(self, resource_descriptor, resource_data):
+        self._stats[self.STATS_DOWNLOADED] = 0
+        self._stats[self.STATS_ALLOWED] = 0
+        self._stats[self.STATS_NOT_ALLOWED] = 0
         for row in resource_data:
             if self._check_override_item(row):
                 self._rows_buffer.append(row)
@@ -103,11 +110,16 @@ class Processor(BaseProcessor):
                     hours_to_next_download = hours_to_next_download * 2
                     if hours_to_next_download > 24*14:
                         hours_to_next_download = 24*14
-                doc.update(collection=item_ids[doc["item_id"]],
+                doc.update(collection=TEMPLATE_ID_COLLECTION_MAP.get(doc["template_id"], "unknown"),
                            last_downloaded=datetime.datetime.now(),
                            hours_to_next_download=hours_to_next_download,
                            last_synced=last_synced,
                            display_allowed=doc_show_filter(doc["parsed_doc"]))
+                self._stats[self.STATS_DOWNLOADED] += 1
+                if doc["display_allowed"]:
+                    self._stats[self.STATS_ALLOWED] += 1
+                else:
+                    self._stats[self.STATS_NOT_ALLOWED] += 1
                 yield doc
 
     def _get_clearmash_api(self):

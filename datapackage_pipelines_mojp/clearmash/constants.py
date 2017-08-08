@@ -49,3 +49,19 @@ CONTENT_FOLDERS = {
 }
 
 DOWNLOAD_PROCESSOR_BUFFER_LENGTH = 10
+
+
+TEMPLATE_ID_COLLECTION_MAP = {
+    "_c6_beit_hatfutsot_bh_photos": common_constants.COLLECTION_PHOTOUNITS,
+    "_c6_beit_hatfutsot_bh_personality": common_constants.COLLECTION_PERSONALITIES,
+    "_c6_beit_hatfutsot_bh_place": common_constants.COLLECTION_PLACES,
+    "_c6_beit_hatfutsot_bh_family_name": common_constants.COLLECTION_FAMILY_NAMES,
+    "_c6_beit_hatfutsot_bh_exhibition": "unknown",
+    "_c6_beit_hatfutsot_bh_recieve_unit": "unknown",
+    "_c6_beit_hatfutsot_bh_source_tid": "unknown",
+    "_c6_beit_hatfutsot_bh_films": common_constants.COLLECTION_MOVIES,
+    "_c6_beit_hatfutsot_bh_familytree": "unknown",
+    "_c6_beit_hatfutsot_bh_family": "unknown",
+    "_c6_beit_hatfutsot_bh_musictext": "unknown",
+    "_c6_beit_hatfutsot_bh_music": "unknown",
+}

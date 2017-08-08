@@ -6,6 +6,8 @@ from sqlalchemy import *
 
 class LoadSqlResource(BaseProcessor):
 
+    STATS_NUM_ROWS = "number of loaded rows from DB"
+
     def _process(self, *args, **kwargs):
         self._db_table = self.db_meta.tables.get(self._parameters["load-table"])
         return super(LoadSqlResource, self)._process(*args, **kwargs)
@@ -52,7 +54,9 @@ class LoadSqlResource(BaseProcessor):
                 if i > 0 and i % 500 == 0:
                     logging.info("loaded {} / {}".format(i, num_total))
             logging.info("loaded {} / {}".format(num_rows, num_total))
-            self._stats["load_sql_resource_num_rows_yielded"] = num_rows
+            self._stats[self.STATS_NUM_ROWS] = num_rows
+        else:
+            self._stats[self.STATS_NUM_ROWS] = 0
 
 
 if __name__ == '__main__':
