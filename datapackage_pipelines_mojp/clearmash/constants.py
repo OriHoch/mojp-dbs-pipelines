@@ -37,7 +37,7 @@ WEB_CONTENT_FOLDER_ID_FamilyName = 45  #: 'שם משפחה',  --> 'familyNames',
 # 48: 'יחידת קבלה',
 WEB_CONTENT_FOLDER_ID_Personality = 49  #: 'אישיות',  --> 'personalities',
 # 50: 'ערך',
-# WEB_CONTENT_FOLDER_ID_Family_Tree = 51  #: 'עץ משפחה',
+WEB_CONTENT_FOLDER_ID_Family_Tree = 51  #: 'עץ משפחה',
 # 53: 'מקור'
 
 CONTENT_FOLDERS = {
@@ -46,6 +46,7 @@ CONTENT_FOLDERS = {
     WEB_CONTENT_FOLDER_ID_Movies: {"collection": common_constants.COLLECTION_MOVIES},
     WEB_CONTENT_FOLDER_ID_Personality: {"collection": common_constants.COLLECTION_PERSONALITIES},
     WEB_CONTENT_FOLDER_ID_Photos: {"collection": common_constants.COLLECTION_PHOTOUNITS},
+    WEB_CONTENT_FOLDER_ID_Family_Tree: {"collection": common_constants.COLLECTION_UNKNOWN},
 }
 
 DOWNLOAD_PROCESSOR_BUFFER_LENGTH = 10

@@ -40,8 +40,12 @@ class MockClearmashApi(ClearmashApi):
         if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Documents/Get":
             filename = "WebContentManagement_Documents_Get_{}".format("_".join(map(str, post_data["entitiesIds"])))
         elif url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Document/Folder/Get":
-            filename = "WebContentManagement_Documents_Folder_Get_{}_{}".format(post_data["FolderId"],
-                                                                                post_data["FolderType"])
+            folder_id = post_data["FolderId"]
+            if folder_id in [40, 42, 43, 45, 49, 51, 69, 82]:
+                filename = "WebContentManagement_Documents_Folder_Get_{}_{}".format(folder_id, post_data["FolderType"])
+            else:
+                # there are many subfolders, we return empty response for all
+                filename = "WebContentManagement_Documents_Folder_Get_ALL_SUBFOLDERS"
         elif url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Document/ByRelationField":
             filename = "WebContentManagement_Document_ByRelationField_{}_{}_{}".format(post_data["EntityId"],
                                                                                        post_data["FieldId"],

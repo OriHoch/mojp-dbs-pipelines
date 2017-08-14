@@ -18,10 +18,16 @@ class Processor(BaseProcessor):
                            {"name": "collection", "type": "string"}],
                 "primaryKey": ["item_id"]}
 
-    def _filter_row(self, row):
-        return row
+    def _parse_folder_res(self, res, parent_folder):
+        for folder in res["Folders"]:
+            yield from self._get_folder(folder["Id"])
+        for item in res["Items"]:
+            if not item["IsFolder"]:
+                yield {"collection": parent_folder["collection"], "item_id": item["Id"]}
 
-    def _get_folder(self, folder_id, folder, num_retries=0):
+    def _get_folder(self, folder_id, folder=None, num_retries=0):
+        if folder is None:
+            folder = {"collection": "unknown"}
         if num_retries > 0:
             logging.info("sleeping {} seconds before retrying".format(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS")))
             time.sleep(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS"))
@@ -42,11 +48,7 @@ class Processor(BaseProcessor):
                 else:
                     raise
         else:
-            for item in res["Items"]:
-                row = {"collection": folder["collection"], "item_id": item["Id"]}
-                row = self._filter_row(row)
-                if row:
-                    yield self._filter_row(row)
+            yield from self._parse_folder_res(res, folder)
 
     def _get_resource(self):
         for folder_id, folder in CONTENT_FOLDERS.items():
