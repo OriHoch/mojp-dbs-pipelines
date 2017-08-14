@@ -37,19 +37,19 @@ def test_get_root_folder():
 
 def test_get_documents_root_folders():
     root_folders = MockClearmashApi().get_documents_root_folders()
-    assert {folder["Id"]: folder["Name"] for folder in root_folders} == {40: 'סרטים',
-                                                                         41: 'מוסיקה',
-                                                                         42: 'תמונות',
-                                                                         43: 'מקום',
-                                                                         44: 'משפחה',
-                                                                         45: 'שם משפחה',
-                                                                         46: 'תערוכה',
-                                                                         47: 'מוסיקה טקסט',
-                                                                         48: 'יחידת קבלה',
-                                                                         49: 'אישיות',
-                                                                         50: 'ערך',
-                                                                         51: 'עץ משפחה',
-                                                                         53: 'מקור'}
+    assert {folder["Id"]: folder["Name"] for folder in root_folders} == {40: 'Films',
+                                                                         41: 'Music',
+                                                                         42: 'Photos',
+                                                                         43: 'Place',
+                                                                         44: 'Family',
+                                                                         45: 'Family Name',
+                                                                         46: 'Exhibition',
+                                                                         47: 'Music Text',
+                                                                         48: 'Receive unit',
+                                                                         49: 'Personality',
+                                                                         50: 'Lexicon',
+                                                                         51: 'Family Tree',
+                                                                         53: 'Source'}
 
 def test_get_web_document_system_folder_places():
     document_folder = MockClearmashApi().get_web_document_system_folder(WEB_CONTENT_FOLDER_ID_Place)
