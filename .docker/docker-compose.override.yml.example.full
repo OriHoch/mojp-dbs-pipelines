@@ -98,6 +98,6 @@ services:
 
   dbs-back:
     build:
-      context: https://github.com/beit-hatfutsot/dbs-back.git
+      context: https://github.com/Beit-Hatfutsot/dbs-back.git#0.13.7
     image: mojp/dbs-back
     command: echo "dbs_back is disabled, only using for build"
