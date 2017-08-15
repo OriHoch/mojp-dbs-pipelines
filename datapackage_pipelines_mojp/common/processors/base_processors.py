@@ -2,7 +2,7 @@ from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines_mojp import settings as mojp_settings
 from itertools import chain
 from datapackage_pipelines_mojp.common.db import get_session, MetaData
-import logging
+import logging, datetime
 
 
 class BaseProcessor(object):
@@ -62,10 +62,14 @@ class BaseProcessor(object):
 
     def _process(self, datapackage, resources):
         if self._add_resource:
-            datapackage["resources"].append({"name": self._add_resource,
-                                             "path": self._add_resource+".csv",
-                                             "schema": self._get_schema()})
-            return datapackage, chain(resources, [self._get_resource()])
+            resource_descriptor = {"name": self._add_resource,
+                                   "path": self._add_resource + ".csv",
+                                   "schema": self._get_schema()}
+            datapackage["resources"].append(resource_descriptor)
+            new_resource_data = self._get_resource()
+            if new_resource_data is None:
+                new_resource_data = []
+            return datapackage, chain(resources, [self._filter_resource(resource_descriptor, new_resource_data)])
         else:
             for resource_descriptor in datapackage["resources"]:
                 if self._is_matching_input_resource(resource_descriptor):
@@ -84,6 +88,11 @@ class BaseProcessor(object):
         if schema:
             resource_descriptor.update(schema=schema)
 
+    def _get_resource_descriptor(self):
+        for resource_descriptor in self._datapackage["resources"]:
+            if self._is_matching_output_resource(resource_descriptor):
+                return resource_descriptor
+
     @classmethod
     def _get_schema(cls):
         return None
@@ -94,11 +103,28 @@ class BaseProcessor(object):
     def _is_matching_output_resource(self, resource_descriptor):
         return resource_descriptor["name"] == self._output_resource
 
+    def _delay_limit_initialize(self):
+        stop_after_minutes = self._parameters.get("stop-after-minutes")
+        if stop_after_minutes:
+            self._delay_limit = float(stop_after_minutes)
+            self._start_time = datetime.datetime.now()
+
+    def _delay_limit_check(self):
+        if hasattr(self, "_delay_limit") and hasattr(self, "_start_time"):
+            time_gap = self.get_time_gap(self._start_time)
+            if time_gap > self._delay_limit:
+                self._warn_once("ran for {} minutes, reached delay limit".format(time_gap))
+                self._stats["reached delay limit after X minutes"] = time_gap
+                return True
+
     def _filter_resource(self, resource_descriptor, resource_data):
+        self._delay_limit_initialize()
         for row in resource_data:
             row = self._filter_row(row)
             if row:
                 yield row
+            if self._delay_limit_check():
+                break
 
     def _filter_row(self, row):
         return row
@@ -124,15 +150,13 @@ class BaseProcessor(object):
     @property
     def db_meta(self):
         if not hasattr(self, "_db_meta"):
-            self._db_meta = MetaData(bind=self.db_session.connection())
+            self._db_meta = MetaData(bind=self.db_session.get_bind())
             self._db_meta.reflect()
         return self._db_meta
 
     def db_commit(self):
         if hasattr(self, "_db_session"):
             self._db_session.commit()
-            self._db_session = self._get_new_db_session()
-            delattr(self, "_db_meta")
 
     def _get_new_db_session(self):
         return get_session()
@@ -143,3 +167,9 @@ class BaseProcessor(object):
         if msg not in self._warned_once:
             self._warned_once.append(msg)
             logging.warning(msg)
+
+    @staticmethod
+    def get_time_gap(start_time):
+        current = datetime.datetime.now()
+        minutes = (current - start_time).total_seconds() / 60
+        return minutes

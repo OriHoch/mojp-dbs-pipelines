@@ -7,12 +7,10 @@ entity-ids:
     - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
       parameters:
         add-resource: entity-ids
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
-        tables:
-          clearmash-entity-ids:
-            resource-name: entity-ids
-            mode: update
+        resource: entity-ids
+        table: clearmash-entity-ids
 
 download-entities:
   description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
