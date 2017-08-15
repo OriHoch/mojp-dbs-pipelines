@@ -20,14 +20,23 @@ class CommonSyncProcessor(BaseProcessor):
     def _get_schema(cls):
         return constants.DBS_DOCS_SYNC_LOG_TABLE_SCHEMA
 
+    def _filter_resource(self, resource_descriptor, resource_data):
+        self._stats["updated docs in ES"] = 0
+        self._stats["added docs to ES"] = 0
+        yield from super(CommonSyncProcessor, self)._filter_resource(resource_descriptor, resource_data)
+
     def _filter_row(self, row):
         if not self._pre_validate_row(row):
             self._warn_once("rows are skipped because they failed pre validation")
             return None
         else:
-            logging.info("{source}:{collection},{id}@{version}".format(
-                source=row.get("source"), collection=row.get("collection"),
-                version=row.get("version"), id=row.get("id")))
+            num_total_docs = self._stats["updated docs in ES"] + self._stats["added docs to ES"]
+            if num_total_docs%100 == 0:
+                logging.info("updated {} docs, inserted {} docs. Last doc updated:".format(self._stats["updated docs in ES"],
+                                                                                           self._stats["added docs to ES"]))
+                logging.info("{source}:{collection},{id}@{version}".format(
+                    source=row.get("source"), collection=row.get("collection"),
+                    version=row.get("version"), id=row.get("id")))
             original_row = deepcopy(row)
             try:
                 row = deepcopy(original_row)
@@ -60,6 +69,7 @@ class CommonSyncProcessor(BaseProcessor):
         with temp_loglevel(logging.ERROR):
             self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
                            body=new_doc, id="{}_{}".format(new_doc["source"], new_doc["source_id"]))
+        self._stats["added docs to ES"] += 1
         return self._get_sync_response(new_doc, "added to ES")
 
     def _update_doc(self, new_doc, old_doc):
@@ -70,6 +80,7 @@ class CommonSyncProcessor(BaseProcessor):
             self._es.index(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE,
                             id="{}_{}".format(new_doc["source"], new_doc["source_id"]),
                             body=new_doc)
+        self._stats["updated docs in ES"] += 1
         return self._get_sync_response(new_doc, "updated doc in ES")
 
 
@@ -170,7 +181,8 @@ class CommonSyncProcessor(BaseProcessor):
 
     def _ensure_slug_uniqueness(self, slug, doc):
         body = {"query": {"constant_score": {"filter": {"term": {"slugs": slug}}}}}
-        results = self._es.search(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE, body=body, ignore_unavailable=True)
+        with temp_loglevel(logging.ERROR):
+            results = self._es.search(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE, body=body, ignore_unavailable=True)
         for hit in results["hits"]["hits"]:
             if hit["_id"] != "{}_{}".format(doc["source"], doc["source_id"]):
                 return self._ensure_slug_uniqueness("{}-{}".format(slug, doc["source_id"]), doc)

@@ -254,11 +254,15 @@ class ClearmashApi(object):
                                       post_data=post_data)
 
     def _get_request_json(self, url, headers, post_data=None):
-        logging.info("_get_request_json({}, {})".format(url, post_data))
+        logging.debug("_get_request_json({}, {})".format(url, post_data))
         if post_data:
             res = requests.post(url, headers=headers, json=post_data)
         else:
             res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            logging.info(parse_error_response_content(res.content))
+            if res.status_code == 400 and "Client token is invalid" in res.content:
+                raise Exception("Invalid Clearmash token")
         res.raise_for_status()
         try:
             return res.json()

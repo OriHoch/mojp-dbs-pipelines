@@ -7,12 +7,10 @@ entity-ids:
     - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
       parameters:
         add-resource: entity-ids
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
-        tables:
-          clearmash-entity-ids:
-            resource-name: entity-ids
-            mode: update
+        resource: entity-ids
+        table: clearmash-entity-ids
 
 download-entities:
   description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
@@ -39,12 +37,10 @@ download-entities:
         id-field: item_id
         source: clearmash
         display-allowed-field: display_allowed
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
-        tables:
-          clearmash-entities:
-            resource-name: entities
-            mode: update
+        resource: entities
+        table: clearmash-entities
 
 download-related-entities:
   description: "downloads related entities for entities in clearmash-entities table, uses logic to reduce number of API calls, but might result in not having all items (e.g. only the first page), updates entity-ids and entities tables in DB"
@@ -73,12 +69,10 @@ download-related-entities:
         id-field: item_id
         source: clearmash
         display-allowed-field: display_allowed
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
-        tables:
-          clearmash-entities:
-            resource-name: related-entities
-            mode: update
+        resource: related-entities
+        table: clearmash-entities
 
 entities-sync:
   description: "syncs to elasticsearch all entities from clearmash-entities table for which last_downloaded > last_synced"

@@ -47,6 +47,7 @@ services:
       - "MOJP_ELASTICSEARCH_DB=10.240.0.7:9200"
       - "MOJP_ELASTICSEARCH_INDEX=next-mojp-dev"
       - "CLEARMASH_CLIENT_TOKEN="
+      - "DPP_WORKER_CONCURRENCY=4"
     volumes:
       - data:/mojp/data
       - cache:/mojp/.cache

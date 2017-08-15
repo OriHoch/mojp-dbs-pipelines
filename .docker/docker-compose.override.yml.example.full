@@ -42,6 +42,10 @@ services:
     image: mojp/pipelines-elasticsearch-index
     depends_on:
       - elasticsearch
+    # use the following to access host elasticsearch (might need to change host ip)
+    # environment:
+    #   - "ELASTICSEARCH_HOST=172.17.0.1:9200"
+    #   - "MOJP_INDEX=mojp"
 
   app:
     build: .
@@ -55,9 +59,15 @@ services:
       - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
       - "MOJP_ELASTICSEARCH_DB=elasticsearch:9200"
       - "MOJP_ELASTICSEARCH_INDEX=mojp"
+      # can use the following instead to access host services (might need to change host ip)
+      # also, make sure your services are open to those connections
+      # - "DPP_DB_ENGINE=postgresql://postgres:123456@172.17.0.1:5432/postgres"
+      # - "MOJP_ELASTICSEARCH_DB=172.17.0.1:9200"
       # required for clearmash pipelines
       - "CLEARMASH_CLIENT_TOKEN="
       # - "OVERRIDE_CLEARMASH_ITEM_IDS=180470,115878,115883,115884,115890,115898,115906,115907,115918,115922,115931,115961"
+      # optional - control how many workers will run, can be set to 0 for debugging
+      # - "DPP_WORKER_CONCURRENCY=1"
     volumes:
       - ./.docker/.data:/mojp/data
       - ./.docker/.data/.cache:/mojp/.cache
@@ -96,6 +106,6 @@ services:
 
   dbs-back:
     build:
-      context: https://github.com/beit-hatfutsot/dbs-back.git
+      context: https://github.com/Beit-Hatfutsot/dbs-back.git#0.13.7
     image: mojp/dbs-back
     command: echo "dbs_back is disabled, only using for build"

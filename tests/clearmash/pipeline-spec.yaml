@@ -6,9 +6,11 @@ entity-ids:
     - run: test_add_entity_ids
       parameters:
         add-resource: entity-ids
-    - run: dump.to_path
+    - run: ...datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
-        out-path: ../../data/clearmash/entity-ids
+        resource: entity-ids
+        table: clearmash-entity-ids
+        commit-every: 10
 
 
 download-new-entities:
