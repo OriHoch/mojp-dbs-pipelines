@@ -254,7 +254,7 @@ class ClearmashApi(object):
                                       post_data=post_data)
 
     def _get_request_json(self, url, headers, post_data=None):
-        logging.info("_get_request_json({}, {})".format(url, post_data))
+        logging.debug("_get_request_json({}, {})".format(url, post_data))
         if post_data:
             res = requests.post(url, headers=headers, json=post_data)
         else:

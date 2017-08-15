@@ -4,7 +4,7 @@ from datapackage_pipelines_mojp.common import constants
 from elasticsearch import NotFoundError
 import logging
 import elasticsearch.helpers
-
+from datapackage_pipelines_mojp.settings import temp_loglevel
 
 
 class Processor(BaseProcessor):
@@ -19,14 +19,16 @@ class Processor(BaseProcessor):
 
     def _get_all_es_ids(self):
         # TODO: optimize, this is really inefficient (but, done only once per pipeline run)
-        return [doc["_id"] for doc in elasticsearch.helpers.scan(self._es, index=self._idx,
-                                                                 doc_type=constants.PIPELINES_ES_DOC_TYPE,
-                                                                 scroll=u"3h")]
-
+        with temp_loglevel(logging.ERROR):
+            res = [doc["_id"] for doc in elasticsearch.helpers.scan(self._es, index=self._idx,
+                                                                    doc_type=constants.PIPELINES_ES_DOC_TYPE,
+                                                                    scroll=u"3h")]
+        return res
 
     def _delete(self, id):
         if id in self._all_es_ids:
-            self._es.delete(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE, id=id)
+            with temp_loglevel(logging.ERROR):
+                self._es.delete(index=self._idx, doc_type=constants.PIPELINES_ES_DOC_TYPE, id=id)
             self._stats[self.STATS_DELETED] += 1
         else:
             self._stats[self.STATS_DELETED] += 1
