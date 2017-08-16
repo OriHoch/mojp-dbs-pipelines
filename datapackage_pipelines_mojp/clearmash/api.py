@@ -208,12 +208,13 @@ class ClearmashApi(object):
     def media_galleries(self):
         return ClearmashMediaGalleries
 
-    def __init__(self, token=None):
+    def __init__(self, token=None, keepalive_callback=None):
         if not token:
             token = settings.CLEARMASH_CLIENT_TOKEN
         if not token:
             raise Exception("Must have a valid clearmash token to use ClearmashApi")
         self._token = token
+        self._keepalive_callback = keepalive_callback
 
     def get_bh_root_folder(self):
         root_folder_by_id = None
@@ -259,6 +260,7 @@ class ClearmashApi(object):
         max_retries = getattr(settings, "CLEARMASH_MAX_RETRIES", 5)
         timeout = 240  # keep it large to allow large responses to return, might reduce for specific requests
         sleep_seconds = settings.CLEARMASH_RETRY_SLEEP_SECONDS
+        self._keepalive()
         if num_retries > 0:
             # for 2nd retriy onwards we sleep before retrying
             if num_retries < 3:
@@ -266,13 +268,16 @@ class ClearmashApi(object):
                 sleep_seconds = 2
             logging.info("sleeping {} seconds before retrying".format(sleep_seconds))
             time.sleep(sleep_seconds)
+            self._keepalive()
         if num_retries < 2:
             # first few retries we use short timeout
             # sometimes request fail momentarily, not worth to wait the full timeout for them
-            timeout = 5
+            timeout = 15
         kwargs["timeout"] = timeout
         try:
-            return requests.request(method, *args, **kwargs)
+            res = requests.request(method, *args, **kwargs)
+            self._keepalive()
+            return res
         except requests.RequestException as e:
             logging.error(e)
             num_retries += 1
@@ -283,6 +288,10 @@ class ClearmashApi(object):
             else:
                 logging.info("reached max retries ({})".format(max_retries))
                 raise
+
+    def _keepalive(self):
+        if self._keepalive_callback:
+            self._keepalive_callback()
 
     def _get_request_json(self, url, headers, post_data=None):
         logging.debug("_get_request_json({}, {})".format(url, post_data))
@@ -296,7 +305,9 @@ class ClearmashApi(object):
                 raise Exception("Invalid Clearmash token")
         res.raise_for_status()
         try:
-            return res.json()
+            res_json = res.json()
+            self._keepalive()
+            return res_json
         except json.JSONDecodeError as e:
             logging.exception(e)
             raise Exception("Failed to parse json from clearmash response: {}".format(res.content))

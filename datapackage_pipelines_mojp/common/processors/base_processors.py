@@ -120,10 +120,12 @@ class BaseProcessor(object):
 
     def _filter_resource(self, resource_descriptor, resource_data):
         self._delay_limit_initialize()
+        self.start_progress()
         for row in resource_data:
             row = self._filter_row(row)
             if row:
                 yield row
+            self.log_progress()
             if self._delay_limit_check():
                 break
 
@@ -190,3 +192,31 @@ class BaseProcessor(object):
         current = datetime.datetime.now()
         minutes = (current - start_time).total_seconds() / 60
         return minutes
+
+    def start_progress(self):
+        self._progress_started = datetime.datetime.now()
+        self._progress_last_log = None
+
+    def log_progress(self):
+        now = datetime.datetime.now()
+        elapsed_seconds = int((now - self._progress_started).total_seconds())
+        if self._progress_last_log:
+            elapsed_since_last_log = (now - self._progress_last_log).total_seconds()
+        else:
+            elapsed_since_last_log = elapsed_seconds
+        if elapsed_seconds < 120:
+            # for the first 2 minutes - write a log every 5 seconds
+            ttl = 5
+        elif elapsed_seconds < 600:
+            # 10 minutes - every 30 seconds
+            ttl = 30
+            self._warn_once("throttling logs down to log every 30 seconds")
+        else:
+            # every 5 minutes
+            ttl = 300
+            self._warn_once("throttling logs down to log every 5 minutes")
+        if elapsed_since_last_log > ttl:
+            self._progress_last_log = now
+            logging.info("total elapsed seconds = {}".format(elapsed_seconds))
+            if self._stats and self._stats != {}:
+                logging.info(self._stats)

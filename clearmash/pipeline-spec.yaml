@@ -9,13 +9,13 @@ entity-ids:
         add-resource: entity-ids
         # this processor dumps data about folders to this DB table
         folder-ids-table: clearmash-folder-ids
-        folders-commit-every: 10000
+        folders-commit-every: 1000
     # this updates the entity ids DB table
     - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
         resource: entity-ids
         table: clearmash-entity-ids
-        commit-every: 10000
+        commit-every: 1000
 
 download-entities:
   description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
