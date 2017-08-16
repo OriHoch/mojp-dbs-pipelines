@@ -1,5 +1,5 @@
 entity-ids:
-  description: "downloads list of entity ids from clearmash folders (collections) and updates db table clearmash-entity-ids"
+  description: "downloads list of entity ids from clearmash folders (collections) and updates relevant db tables"
   schedule:
     # daily at 00:00
     crontab: "0 0 * * *"
@@ -7,10 +7,14 @@ entity-ids:
     - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
       parameters:
         add-resource: entity-ids
+        # this processor dumps data about folders to this DB table
+        folder-ids-table: clearmash-folder-ids
+    # this updates the entity ids DB table
     - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
         resource: entity-ids
         table: clearmash-entity-ids
+        commit-every: 10000
 
 download-entities:
   description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
