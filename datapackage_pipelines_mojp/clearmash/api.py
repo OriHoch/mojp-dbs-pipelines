@@ -257,14 +257,20 @@ class ClearmashApi(object):
     def _request_retry(self, method, *args, **kwargs):
         num_retries = kwargs.pop("__num_retries__", 0)
         max_retries = getattr(settings, "CLEARMASH_MAX_RETRIES", 5)
-        connection_timeout = 6.05  # a number slightly bigger then multiple of 3 supposed to be best for tcp/ip
-        read_timeout = 240  # keep it large to allow large responses to return, might reduce for specific requests
-        retry_sleep_seconds = settings.CLEARMASH_RETRY_SLEEP_SECONDS
+        timeout = 240  # keep it large to allow large responses to return, might reduce for specific requests
+        sleep_seconds = settings.CLEARMASH_RETRY_SLEEP_SECONDS
         if num_retries > 0:
-            sleep_seconds = num_retries / max_retries * retry_sleep_seconds
+            # for 2nd retriy onwards we sleep before retrying
+            if num_retries < 3:
+                # first few retries we use short sleep time - sometimes quick refresh works
+                sleep_seconds = 2
             logging.info("sleeping {} seconds before retrying".format(sleep_seconds))
             time.sleep(sleep_seconds)
-        kwargs["timeout"] = (connection_timeout, read_timeout)
+        if num_retries < 2:
+            # first few retries we use short timeout
+            # sometimes request fail momentarily, not worth to wait the full timeout for them
+            timeout = 5
+        kwargs["timeout"] = timeout
         try:
             return requests.request(method, *args, **kwargs)
         except requests.RequestException as e:

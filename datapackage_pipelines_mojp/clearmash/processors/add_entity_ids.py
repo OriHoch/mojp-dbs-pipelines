@@ -18,14 +18,6 @@ CLEARMASH_ENTITY_IDS_SCHEMA = {"fields": [{"name": "item_id", "type": "integer"}
 
 class Processor(BaseProcessor):
 
-    def __init__(self, *args, **kwargs):
-        super(Processor, self).__init__(*args, **kwargs)
-        self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
-        if self._override_collections:
-            logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
-        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folder-ids-table"],
-                                                               CLEARMASH_FOLDERS_SCHEMA, self._get_settings())
-
     @classmethod
     def _get_schema(cls):
         return CLEARMASH_ENTITY_IDS_SCHEMA
@@ -42,15 +34,25 @@ class Processor(BaseProcessor):
         if folder is None:
             folder = {"collection": "unknown"}
         res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
-        self.folders_processor.commit_rows([{"folder_id": folder_id, "metadata": folder_metadata}])
+        self.folders_buffer.append({"folder_id": folder_id, "metadata": folder_metadata})
         yield from self._parse_folder_res(res, folder, folder_id)
+        if len(self.folders_buffer) > int(self._parameters.get("folders-commit-every", 10)):
+            self.folders_processor.commit_rows(self.folders_buffer)
 
     def _get_resource(self):
+        self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
+        if self._override_collections:
+            logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
+        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folder-ids-table"],
+                                                               CLEARMASH_FOLDERS_SCHEMA, self._get_settings())
+        self.folders_buffer = []
         for folder_id, folder in CONTENT_FOLDERS.items():
             if self._override_collections and folder["collection"] not in self._override_collections:
                 logging.info("collection {} not in override collections, skipping".format(folder["collection"]))
                 continue
             yield from self._get_folder(folder_id, folder)
+        if len(self.folders_buffer) > 0:
+            self.folders_processor.commit_rows(self.folders_buffer)
 
     def _get_clearmash_api(self):
         return ClearmashApi()

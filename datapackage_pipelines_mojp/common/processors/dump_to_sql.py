@@ -22,6 +22,7 @@ class Processor(BaseProcessor):
 
     def db_commit(self):
         if len(self._rows_buffer) > 0:
+            self.db_connect(retry=True)
             table = self.db_meta.tables.get(self._tablename)
             if table is None:
                 table = self._create_table()
@@ -45,6 +46,8 @@ class Processor(BaseProcessor):
                                                                        self._stats["number of updated rows"],
                                                                        self._stats["number of inserted rows"]))
             self._rows_buffer = []
+            # force a new session on next commit
+            delattr(self, "_db_session")
 
     def _filter_row(self, row):
         self._row_num += 1
@@ -67,6 +70,7 @@ class Processor(BaseProcessor):
         self._stats["committed every X rows"] = self._commit_buffer_length
         self._row_num = 0
         self._rows_buffer = []
+        self.db_connect()
         if self._commit_buffer_length > 1:
             logging.info("{}: initialized, committing every {} rows".format(self._tablename,
                                                                             self._stats["committed every X rows"]))

@@ -2,7 +2,8 @@ from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines_mojp import settings as mojp_settings
 from itertools import chain
 from datapackage_pipelines_mojp.common.db import get_session, MetaData
-import logging, datetime
+import logging, datetime, time
+from sqlalchemy.exc import OperationalError
 
 
 class BaseProcessor(object):
@@ -49,7 +50,7 @@ class BaseProcessor(object):
     @classmethod
     def main(cls):
         # can be used like this in datapackage processor files:
-        # if __main__ == '__main__':
+        # if __name__ == '__main__':
         #      Processor.main()
         spew(*cls(*ingest()).spew())
 
@@ -157,6 +158,22 @@ class BaseProcessor(object):
     def db_commit(self):
         if hasattr(self, "_db_session"):
             self._db_session.commit()
+
+    def db_connect(self, retry=False, **kwargs):
+        try:
+            self.db_session.get_bind().connect()
+        except OperationalError:
+            logging.exception("db connection error")
+            if not retry:
+                raise
+            else:
+                retry_num = kwargs.setdefault("retry_num", 0) + 1
+                max_retries = kwargs.setdefault("max_retries", 5)
+                retry_sleep_seconds = kwargs.setdefault("retry_sleep_seconds", 2)
+                if retry_num < max_retries:
+                    time.sleep(retry_sleep_seconds)
+                    return self.db_connect(**dict(kwargs, **{"retry_num": retry_num}))
+        return True
 
     def _get_new_db_session(self):
         return get_session()
