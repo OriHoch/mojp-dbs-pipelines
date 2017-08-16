@@ -1,7 +1,19 @@
 from datapackage_pipelines_mojp.common.processors.base_processors import BaseProcessor
+from datapackage_pipelines_mojp.common.processors.dump_to_sql import Processor as DumpToSqlProcessor
 from datapackage_pipelines_mojp.clearmash.constants import CONTENT_FOLDERS
 from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
 import logging, time
+
+
+CLEARMASH_FOLDERS_SCHEMA = {"fields": [{"name": "folder_id", "type": "integer"},
+                                       {"name": "metadata", "type": "object"}],
+                            "primaryKey": ["folder_id"]}
+
+CLEARMASH_ENTITY_IDS_SCHEMA = {"fields": [{"name": "item_id", "type": "integer"},
+                                          {"name": "collection", "type": "string"},
+                                          {"name": "metadata", "type": "object"},
+                                          {"name": "folder_id", "type": "integer"}],
+                               "primaryKey": ["item_id"]}
 
 
 class Processor(BaseProcessor):
@@ -11,44 +23,27 @@ class Processor(BaseProcessor):
         self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         if self._override_collections:
             logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
+        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folder-ids-table"],
+                                                               CLEARMASH_FOLDERS_SCHEMA, self._get_settings())
 
     @classmethod
     def _get_schema(cls):
-        return {"fields": [{"name": "item_id", "type": "integer"},
-                           {"name": "collection", "type": "string"}],
-                "primaryKey": ["item_id"]}
+        return CLEARMASH_ENTITY_IDS_SCHEMA
 
-    def _parse_folder_res(self, res, parent_folder):
+    def _parse_folder_res(self, res, parent_folder, folder_id):
         for folder in res["Folders"]:
-            yield from self._get_folder(folder["Id"])
+            yield from self._get_folder(folder["Id"], folder_metadata=folder)
         for item in res["Items"]:
             if not item["IsFolder"]:
-                yield {"collection": parent_folder["collection"], "item_id": item["Id"]}
+                yield {"collection": parent_folder["collection"], "item_id": item["Id"],
+                       "folder_id": folder_id, "metadata": item}
 
-    def _get_folder(self, folder_id, folder=None, num_retries=0):
+    def _get_folder(self, folder_id, folder=None, folder_metadata=None):
         if folder is None:
             folder = {"collection": "unknown"}
-        if num_retries > 0:
-            logging.info("sleeping {} seconds before retrying".format(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS")))
-            time.sleep(self._get_settings("CLEARMASH_RETRY_SLEEP_SECONDS"))
-        try:
-            res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
-        except Exception as e:
-            logging.error(e)
-            logging.info("unexpected exception getting clearmash folder for collection {}".format(folder["collection"]))
-            num_retries += 1
-            if num_retries < self._get_settings("CLEARMASH_MAX_RETRIES"):
-                logging.info("retrying ({} / {})".format(num_retries, self._get_settings("CLEARMASH_MAX_RETRIES")))
-                yield from self._get_folder(folder_id, folder, num_retries=num_retries)
-            else:
-                logging.info("reached max retries ({})".format(self._get_settings("CLEARMASH_MAX_RETRIES")))
-                skip_failure_collections = self._parameters.get("skip-failure-collections")
-                if skip_failure_collections and folder["collection"] in skip_failure_collections:
-                    logging.info("collection is in skip-failure param, so continuing".format(self._get_settings("CLEARMASH_MAX_RETRIES")))
-                else:
-                    raise
-        else:
-            yield from self._parse_folder_res(res, folder)
+        res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
+        self.folders_processor.commit_rows([{"folder_id": folder_id, "metadata": folder_metadata}])
+        yield from self._parse_folder_res(res, folder, folder_id)
 
     def _get_resource(self):
         for folder_id, folder in CONTENT_FOLDERS.items():

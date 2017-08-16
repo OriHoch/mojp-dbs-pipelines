@@ -5,6 +5,7 @@ from pyquery import PyQuery as pq
 import json
 import logging
 import datetime
+import time
 
 
 def parse_error_response_content(content):
@@ -253,12 +254,36 @@ class ClearmashApi(object):
                                       headers=self._get_headers(),
                                       post_data=post_data)
 
+    def _request_retry(self, method, *args, **kwargs):
+        num_retries = kwargs.pop("__num_retries__", 0)
+        max_retries = getattr(settings, "CLEARMASH_MAX_RETRIES", 5)
+        connection_timeout = 6.05  # a number slightly bigger then multiple of 3 supposed to be best for tcp/ip
+        read_timeout = 240  # keep it large to allow large responses to return, might reduce for specific requests
+        retry_sleep_seconds = settings.CLEARMASH_RETRY_SLEEP_SECONDS
+        if num_retries > 0:
+            sleep_seconds = num_retries / max_retries * retry_sleep_seconds
+            logging.info("sleeping {} seconds before retrying".format(sleep_seconds))
+            time.sleep(sleep_seconds)
+        kwargs["timeout"] = (connection_timeout, read_timeout)
+        try:
+            return requests.request(method, *args, **kwargs)
+        except requests.RequestException as e:
+            logging.error(e)
+            num_retries += 1
+            if num_retries < max_retries:
+                logging.info("retrying ({} / {})".format(num_retries, max_retries))
+                kwargs["__num_retries__"] = num_retries
+                return self._request_retry(method, *args, **kwargs)
+            else:
+                logging.info("reached max retries ({})".format(max_retries))
+                raise
+
     def _get_request_json(self, url, headers, post_data=None):
         logging.debug("_get_request_json({}, {})".format(url, post_data))
         if post_data:
-            res = requests.post(url, headers=headers, json=post_data)
+            res = self._request_retry("post", url, headers=headers, json=post_data)
         else:
-            res = requests.get(url, headers=headers)
+            res = self._request_retry("get", url, headers=headers)
         if res.status_code != 200:
             logging.info(parse_error_response_content(res.content))
             if res.status_code == 400 and "Client token is invalid" in res.content:
