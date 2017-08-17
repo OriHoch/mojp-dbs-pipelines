@@ -42,17 +42,18 @@ class Processor(BaseProcessor):
         return res
 
     def _get_folder(self, folder_id, folder=None, folder_metadata=None, parent_folder_id=None):
+        is_root_folder = folder is not None
         if folder is None:
             folder = {"collection": "unknown"}
-        self.log_progress()
-        res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
-        self.log_progress()
         # add the row for this folder
         self.folders_buffer.append({"parent_id": parent_folder_id,
                                     "id": folder_id,
                                     "name": folder_metadata.get("Name", "") if folder_metadata else None,
                                     "metadata": folder_metadata})
-        self._flush_folders()
+        self._flush_folders(force=is_root_folder)
+        self.log_progress()
+        res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
+        self.log_progress()
         # recursively adds sub-folders and items
         yield from self._parse_folder_res(res, folder, folder_id)
         self._stats["processed folders"] += 1
