@@ -7,7 +7,8 @@ entity-ids:
       parameters:
         add-resource: entity-ids
         # this processor dumps data about folders to this DB table
-        folder-ids-table: clearmash-folder-ids
+        folders-table: clearmash-folders
+        folders-commit-every: 5
     - run: ...datapackage_pipelines_mojp.common.processors.dump_to_sql
       parameters:
         resource: entity-ids

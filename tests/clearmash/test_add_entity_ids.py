@@ -5,8 +5,9 @@ from tests.common import get_mock_settings, assert_conforms_to_schema
 
 class MockAddEntityIdsProcessor(AddEntityIdsProcessor):
 
-    def _get_clearmash_api(self):
-        return MockClearmashApi()
+    def _get_clearmash_api_class(self):
+        return MockClearmashApi
+
 
 if __name__ == "__main__":
     MockAddEntityIdsProcessor.main()

@@ -5,14 +5,17 @@ from datapackage_pipelines_mojp.clearmash.api import ClearmashApi
 import logging, time
 
 
-CLEARMASH_FOLDERS_SCHEMA = {"fields": [{"name": "folder_id", "type": "integer"},
+CLEARMASH_FOLDERS_SCHEMA = {"fields": [{"name": "parent_id", "type": "integer"},
+                                       {"name": "id", "type": "integer"},
+                                       {"name": "name", "type": "string"},
                                        {"name": "metadata", "type": "object"}],
-                            "primaryKey": ["folder_id"]}
+                            "primaryKey": ["id"]}
 
-CLEARMASH_ENTITY_IDS_SCHEMA = {"fields": [{"name": "item_id", "type": "integer"},
+CLEARMASH_ENTITY_IDS_SCHEMA = {"fields": [{"name": "folder_id", "type": "integer"},
+                                          {"name": "item_id", "type": "integer"},
                                           {"name": "collection", "type": "string"},
-                                          {"name": "metadata", "type": "object"},
-                                          {"name": "folder_id", "type": "integer"}],
+                                          {"name": "name", "type": "string"},
+                                          {"name": "metadata", "type": "object"},],
                                "primaryKey": ["item_id"]}
 
 
@@ -24,32 +27,41 @@ class Processor(BaseProcessor):
 
     def _parse_folder_res(self, res, parent_folder, folder_id):
         for folder in res["Folders"]:
-            yield from self._get_folder(folder["Id"], folder_metadata=folder)
+            yield from self._get_folder(folder["Id"], folder_metadata=folder, parent_folder_id=folder_id)
         for item in res["Items"]:
-            if not item["IsFolder"]:
-                item = {"collection": parent_folder["collection"], "item_id": item["Id"],
-                       "folder_id": folder_id, "metadata": item}
-                self._stats["processed items"] += 1
-                yield item
+            if not item["IsFolder"]:  # sometimes folders appear in the items
+                yield self._get_item(item, folder_id, parent_folder)
 
-    def _get_folder(self, folder_id, folder=None, folder_metadata=None):
+    def _get_item(self, item, folder_id, parent_folder):
+        res = {"folder_id": folder_id,
+                "item_id": item["Id"],
+                "collection": parent_folder["collection"],
+                "name": item["Name"],
+                "metadata": item}
+        self._stats["processed items"] += 1
+        return res
+
+    def _get_folder(self, folder_id, folder=None, folder_metadata=None, parent_folder_id=None):
         if folder is None:
             folder = {"collection": "unknown"}
         self.log_progress()
         res = self._get_clearmash_api().get_web_document_system_folder(folder_id)
         self.log_progress()
-        self.folders_buffer.append({"folder_id": folder_id, "metadata": folder_metadata})
+        # add the row for this folder
+        self.folders_buffer.append({"parent_id": parent_folder_id,
+                                    "id": folder_id,
+                                    "name": folder_metadata.get("Name", "") if folder_metadata else None,
+                                    "metadata": folder_metadata})
+        self._flush_folders()
+        # recursively adds sub-folders and items
         yield from self._parse_folder_res(res, folder, folder_id)
-        if len(self.folders_buffer) > int(self._parameters.get("folders-commit-every", 10)):
-            self.folders_processor.commit_rows(self.folders_buffer)
-            self.folders_buffer = []
         self._stats["processed folders"] += 1
 
     def _get_resource(self):
         self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         if self._override_collections:
             logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
-        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folder-ids-table"],
+        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folders-table"],
                                                                CLEARMASH_FOLDERS_SCHEMA, self._get_settings())
         self.folders_buffer = []
         self._stats["processed root folders"] = 0
@@ -62,11 +74,21 @@ class Processor(BaseProcessor):
                 continue
             yield from self._get_folder(folder_id, folder)
             self._stats["processed root folders"] += 1
-        if len(self.folders_buffer) > 0:
-            self.folders_processor.commit_rows(self.folders_buffer)
+        self._flush_folders(force=True)
+
+    def _get_clearmash_api_class(self):
+        return ClearmashApi
 
     def _get_clearmash_api(self):
-        return ClearmashApi(keepalive_callback=lambda: self.log_progress())
+        return self._get_clearmash_api_class()(keepalive_callback=lambda: self.log_progress(), stats=self._stats)
+
+    def _flush_folders(self, force=False):
+        commit_every = int(self._parameters.get("folders-commit-every", 10))
+        if len(self.folders_buffer) > 0 and (force or len(self.folders_buffer) > commit_every):
+            self.folders_processor.commit_rows(self.folders_buffer)
+            self._stats.update({"folders: {}".format(k): v
+                                for k, v in self.folders_processor.stats.items()})
+            self.folders_buffer = []
 
 
 if __name__ == '__main__':

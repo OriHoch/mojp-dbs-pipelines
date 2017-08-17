@@ -208,13 +208,15 @@ class ClearmashApi(object):
     def media_galleries(self):
         return ClearmashMediaGalleries
 
-    def __init__(self, token=None, keepalive_callback=None):
+    def __init__(self, token=None, keepalive_callback=None, stats=None):
         if not token:
             token = settings.CLEARMASH_CLIENT_TOKEN
         if not token:
             raise Exception("Must have a valid clearmash token to use ClearmashApi")
         self._token = token
         self._keepalive_callback = keepalive_callback
+        self._stats = stats if stats else {}
+        self._stats.setdefault("clearmash api requests", 0)
 
     def get_bh_root_folder(self):
         root_folder_by_id = None
@@ -276,6 +278,7 @@ class ClearmashApi(object):
         kwargs["timeout"] = timeout
         try:
             res = requests.request(method, *args, **kwargs)
+            self._stats["clearmash api requests"] += 1
             self._keepalive()
             return res
         except requests.RequestException as e:

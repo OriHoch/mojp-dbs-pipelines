@@ -31,10 +31,10 @@ class MockClearmashApi(ClearmashApi):
     def media_galleries(self):
         return MockClearmashMediaGalleries
 
-    def __init__(self, token=None):
+    def __init__(self, token=None, **kwargs):
         if not settings.CLEARMASH_CLIENT_TOKEN:
             token = "INVALID TOKEN"
-        super(MockClearmashApi, self).__init__(token)
+        super(MockClearmashApi, self).__init__(token, **kwargs)
 
     def _get_request_json(self, url, headers, post_data=None):
         if url == "https://bh.clearmash.com/API/V5/Services/WebContentManagement.svc/Documents/Get":

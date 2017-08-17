@@ -94,5 +94,9 @@ class Processor(BaseProcessor):
         self._rows_buffer = rows
         self.db_commit()
 
+    @property
+    def stats(self):
+        return self._stats
+
 if __name__ == '__main__':
     Processor.main()
