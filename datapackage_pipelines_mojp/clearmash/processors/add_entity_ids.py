@@ -42,6 +42,7 @@ class Processor(BaseProcessor):
         yield from self._parse_folder_res(res, folder, folder_id)
         if len(self.folders_buffer) > int(self._parameters.get("folders-commit-every", 10)):
             self.folders_processor.commit_rows(self.folders_buffer)
+            self.folders_buffer = []
         self._stats["processed folders"] += 1
 
     def _get_resource(self):
