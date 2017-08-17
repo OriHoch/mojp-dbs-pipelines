@@ -1,12 +1,73 @@
 from datapackage_pipelines_mojp.clearmash.processors.add_entity_ids import Processor as AddEntityIdsProcessor
 from tests.clearmash.mock_clearmash_api import MockClearmashApi
 from tests.common import get_mock_settings, assert_conforms_to_schema
+from datapackage_pipelines_mojp.common.processors.dump_to_sql import Processor as DumpToSqlProcessor
+from tests.common import get_test_db_session
+from sqlalchemy import Column, Text
+import json
+
+
+class MockDumpToSqlProcessor(DumpToSqlProcessor):
+
+    def __init__(self, *args, **kwargs):
+        self._jsonb_columns = []
+        super(MockDumpToSqlProcessor, self).__init__(*args, **kwargs)
+    
+    def _get_new_db_session(self):
+        if not hasattr(self, "__test_db_session"):
+            self.__test_db_sssion = get_test_db_session()
+        return self.__test_db_sssion
+
+    def _descriptor_to_columns_and_constraints(self, *args):
+        columns, constraints, indexes = super(MockDumpToSqlProcessor, self)._descriptor_to_columns_and_constraints(*args)
+        columns = [self._filter_sqlalchemy_column(column) for column in columns]
+        return columns, constraints, indexes
+
+    def _filter_sqlalchemy_column(self, column):
+        # change JSONB to TEXT because sqlite doesn't support jsonb
+        if str(column.type) == "JSONB":
+            self._jsonb_columns.append(column.name)
+            column = Column(column.name, Text())
+        return column
+
+    def _filter_sqlalchemy_column_value(self, k, v):
+        if k in self._jsonb_columns:
+            return json.dumps(v)
+        else:
+            return v
+
+    def _filter_sqlalchemy_row(self, row):
+        return {k: self._filter_sqlalchemy_column_value(k, v) for k, v in row.items()}
+
+    def db_commit(self):
+        return [self._filter_sqlalchemy_row(row) for row in self._rows_buffer]
+
+    def db_connect(self, **kwargs):
+        pass
+
+    def _db_delete_session(self):
+        pass
 
 
 class MockAddEntityIdsProcessor(AddEntityIdsProcessor):
 
     def _get_clearmash_api_class(self):
         return MockClearmashApi
+
+    def _get_new_db_session(self):
+        if not hasattr(self, "__test_db_session"):
+            self.__test_db_sssion = get_test_db_session()
+        return self.__test_db_sssion
+
+    def _get_folders_processor(self, parameters, schema, settings):
+        processor = MockDumpToSqlProcessor({"resource": "_",
+                                            "table": "clearmash-folders",
+                                            "commit-every": 0},
+                                           {"name": "_", "resources": [{"name": "_", "schema": schema}]},
+                                           [], settings)
+        processor.__test_db_sssion = self._get_new_db_session()
+        processor._filter_resource_init(schema)
+        return processor
 
 
 if __name__ == "__main__":

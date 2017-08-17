@@ -8,12 +8,16 @@ from sqlalchemy.ext.automap import automap_base
 class Processor(BaseProcessor):
 
     def _create_table(self):
-        columns, constraints, indexes = descriptor_to_columns_and_constraints("", self._tablename, self._schema, (), None)
+        columns, constraints, indexes = self._descriptor_to_columns_and_constraints("", self._tablename, self._schema,
+                                                                                    (), None)
         table = Table(self._tablename, self.db_meta, *(columns + constraints + indexes))
         table.create()
         self._stats["was table created?"] = "yes"
         logging.info("{}: created table".format(self._tablename))
         return table
+
+    def _descriptor_to_columns_and_constraints(self, *args):
+        return descriptor_to_columns_and_constraints(*args)
 
     def _get_mapper(self):
         Base = automap_base(metadata=self.db_meta)
@@ -47,7 +51,10 @@ class Processor(BaseProcessor):
                                                                        self._stats["number of inserted rows"]))
             self._rows_buffer = []
             # force a new session on next commit
-            delattr(self, "_db_session")
+            self._db_delete_session()
+
+    def _db_delete_session(self):
+        delattr(self, "_db_session")
 
     def _filter_row(self, row):
         self._row_num += 1

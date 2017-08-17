@@ -62,8 +62,9 @@ class Processor(BaseProcessor):
         self._override_collections = self._get_settings("OVERRIDE_CLEARMASH_COLLECTIONS")
         if self._override_collections:
             logging.info("OVERRIDE_CLEARMASH_COLLECTIONS = {}".format(self._override_collections))
-        self.folders_processor = DumpToSqlProcessor.initialize(self._parameters["folders-table"],
-                                                               CLEARMASH_FOLDERS_SCHEMA, self._get_settings())
+        self.folders_processor = self._get_folders_processor(self._parameters["folders-table"],
+                                                             CLEARMASH_FOLDERS_SCHEMA,
+                                                             self._get_settings())
         self.folders_buffer = []
         self._stats["processed root folders"] = 0
         self._stats["processed folders"] = 0
@@ -82,6 +83,9 @@ class Processor(BaseProcessor):
 
     def _get_clearmash_api(self):
         return self._get_clearmash_api_class()(keepalive_callback=lambda: self.log_progress(), stats=self._stats)
+
+    def _get_folders_processor(self, parameters, schema, settings):
+        return DumpToSqlProcessor.initialize(parameters, schema, settings)
 
     def _flush_folders(self, force=False):
         commit_every = int(self._parameters.get("folders-commit-every", 10))
