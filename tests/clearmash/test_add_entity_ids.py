@@ -17,7 +17,7 @@ def test_clearmash_add_entity_ids():
     settings = get_mock_settings(OVERRIDE_CLEARMASH_COLLECTIONS="",
                                  CLEARMASH_MAX_RETRIES=0,
                                  CLEARMASH_RETRY_SLEEP_SECONDS=0)
-    parameters = {"add-resource": "entity-ids", "folder-ids-table": "clearmash-folder-ids"}
+    parameters = {"add-resource": "entity-ids", "folders-table": "clearmash-folders"}
     datapackage = {"resources": []}
     resources = []
     datapackage, resources, stats = MockAddEntityIdsProcessor(parameters, datapackage, resources, settings).spew()
@@ -28,6 +28,7 @@ def test_clearmash_add_entity_ids():
     assert_conforms_to_schema(AddEntityIdsProcessor._get_schema(), resource[0])
     assert resource[0] == {'collection': 'familyNames', 'folder_id': 45,
                            'item_id': 115306,
+                           'name': 'בן עמרה',
                            'metadata': {'CommunityId': 6,
                                         'CreatorPersonId': 2,
                                         'FileType': 0,
