@@ -1,21 +1,27 @@
-entity-ids:
-  description: "downloads list of entity ids from clearmash folders (collections) and updates relevant db tables"
-  schedule:
-    # daily at 00:00
-    crontab: "0 0 * * *"
+web-content-folder-item-ids:
+  description: "recursively downloads list of entity ids from clearmash web content folders"
   pipeline:
-    - run: ..datapackage_pipelines_mojp.clearmash.processors.add_entity_ids
-      parameters:
-        add-resource: entity-ids
-        # this processor dumps data about folders to this DB table
-        folders-table: clearmash-folders
-        folders-commit-every: 1000
-    # this updates the entity ids DB table
-    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
-      parameters:
-        resource: entity-ids
-        table: clearmash-entity-ids
-        commit-every: 1000
+  - run: get_web_content_folder_item_ids
+  - run: "get some stats about the downloaded item ids"
+    code: |
+          from datapackage_pipelines.wrapper import ingest, spew
+          parameters, datapackage, resources = ingest()
+          resource = [resource for i, resource in enumerate(resources) if i == 0][0]
+          stats = {}
+          for row in resource:
+            stats.setdefault(row["collection"], {"total": 0, "published": 0, "searchable": 0, "permission_type_is_not_1": 0})
+            stats[row["collection"]]["total"] += 1
+            if row["item_is_published"]:
+              stats[row["collection"]]["published"] += 1
+            if row["item_is_searchable"]:
+              stats[row["collection"]]["searchable"] += 1
+            if row["item_permissions_type"] != 1:
+              stats[row["collection"]]["permission_type_is_not_1"] += 1
+          spew(dict(datapackage, resources=[]), [], stats)
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/clearmash/web-content-folder-entity-ids
+
 
 download-entities:
   description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"

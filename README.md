@@ -12,6 +12,48 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 This project provides pipelines that sync data from multiple external sources to the [MoJP](http://dbs.bh.org.il/) Elasticsearch DB.
 
 
+## Running
+
+Install some dependencies (the following should work on recent versions of Ubuntu / Debian)
+
+```
+sudo apt-get install -y python3.6 python3-pip python3.6-dev libleveldb-dev libleveldb1v5
+sudo pip3 install pipenv
+```
+
+Install the app depepdencies
+
+```
+
+pipenv install
+```
+
+Activate the virtualenv
+
+```
+pipenv shell
+```
+
+Install the datapackage_pipelines_mojp package for development
+
+```
+pip install -e .
+```
+
+Get the list of available pipelines
+
+```
+dpp
+```
+
+Run a pipeline
+
+```
+dpp run <PIPELINE_ID>
+```
+
+
+
 ### Running the full pipelines environment using docker
 
 * Install Docker and Docker Compose (refer to Docker guides for your OS)

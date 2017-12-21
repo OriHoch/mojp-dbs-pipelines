@@ -17,3 +17,9 @@ docker-compose*
 .docker/.data
 __pycache__
 **/*.pyc
+/tests
+*.egg-info
+/.docker
+.travis
+data
+Dockerfile*

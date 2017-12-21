@@ -1,32 +1,16 @@
-FROM python:3.6-alpine
+FROM frictionlessdata/datapackage-pipelines
 
-# install system requirements
-RUN apk add --update --no-cache --virtual=build-dependencies \
-    antiword \
-    build-base \
-    curl \
-    jpeg-dev \
-    libxml2-dev libxml2 \
-    libxslt-dev libxslt \
-    libstdc++ \
-    libpq \
-    python3-dev postgresql-dev
-RUN apk --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update add leveldb leveldb-dev
-RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines[speedup]
+RUN pip install --no-cache-dir pipenv pew
+RUN apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev
 
-ENV PYTHONUNBUFFERED 1
+COPY Pipfile /pipelines/
+COPY Pipfile.lock /pipelines/
+RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
 
-# copy requirements to allow caching of the requirements layer by docker
-COPY requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt
+COPY setup.py /pipelines/
+RUN pip install -e .
 
-RUN mkdir -p /mojp/data
-WORKDIR /mojp
-COPY . /mojp/
-
-# install the optimized package
-RUN bin/install_optimized.sh
-
-ENTRYPOINT ["/mojp/.docker/app/entrypoint.sh"]
-
-VOLUME /mojp/data
+COPY bagnowka /pipelines/bagnowka
+COPY bin /pipelines/bin
+COPY clearmash /pipelines/clearmash
+COPY datapackage_pipelines_mojp /pipelines/datapackage_pipelines_mojp

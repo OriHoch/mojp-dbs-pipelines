@@ -1,20 +1,20 @@
 from dotenv import load_dotenv, find_dotenv
 import os
-from datapackage_pipelines.manager.logging_config import logging
+# from datapackage_pipelines.manager.logging_config import logging
 from contextlib import contextmanager
 
 
-DEFAULT_LOGGING_LEVEL = logging.INFO
+# DEFAULT_LOGGING_LEVEL = logging.INFO
 
-root_logging_handler = logging.root.handlers[0]
-root_logging_handler.setFormatter(logging.Formatter("%(levelname)s:%(module)s:%(message)s"))
-root_logging_handler.setLevel(DEFAULT_LOGGING_LEVEL)
+# root_logging_handler = logging.root.handlers[0]
+# root_logging_handler.setFormatter(logging.Formatter("%(levelname)s:%(module)s:%(message)s"))
+# root_logging_handler.setLevel(DEFAULT_LOGGING_LEVEL)
 
 @contextmanager
 def temp_loglevel(level):
-    root_logging_handler.setLevel(level)
+    # root_logging_handler.setLevel(level)
     yield
-    root_logging_handler.setLevel(DEFAULT_LOGGING_LEVEL)
+    # root_logging_handler.setLevel(DEFAULT_LOGGING_LEVEL)
 
 
 load_dotenv(find_dotenv())
