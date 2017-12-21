@@ -1,4 +1,4 @@
-import logging, sys
+import logging, sys, os
 from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
 
@@ -17,7 +17,7 @@ else:
     parameters, datapackage, resources = ingest()
 
 
-parameters = dict({"max-recursion-depth": 1}, **parameters)
+parameters = dict({"max-recursion-depth": int(os.environ.get("MAX_RECURSION_DEPTH", "-1"))}, **parameters)
 aggregations = {"stats": {}}
 
 
@@ -35,8 +35,8 @@ def get_folder_items(folder_id, folder, recursion_depth=0):
                "item_is_searchable": item["IsSearchable"],
                "item_permissions_type": item["PermissionType"], }
     for folder in doc["Folders"]:
-        if parameters["max-recursion-depth"] < recursion_depth:
-            yield from get_folder_items(folder_id, folder, recursion_depth+1)
+        if parameters["max-recursion-depth"] == -1 or recursion_depth < parameters["max-recursion-depth"]:
+            yield from get_folder_items(folder["Id"], {"collection": "unknown"}, recursion_depth+1)
         else:
             logging.warning("Reached folders max recursion depth")
 
