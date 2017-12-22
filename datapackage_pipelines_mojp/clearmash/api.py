@@ -304,7 +304,7 @@ class ClearmashApi(object):
             res = self._request_retry("get", url, headers=headers)
         if res.status_code != 200:
             logging.info(parse_error_response_content(res.content))
-            if res.status_code == 400 and "Client token is invalid" in res.content:
+            if res.status_code == 400 and "Client token is invalid" in res.text:
                 raise Exception("Invalid Clearmash token")
         res.raise_for_status()
         try:
