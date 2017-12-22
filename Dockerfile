@@ -10,6 +10,10 @@ RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
 COPY setup.py /pipelines/
 RUN pip install -e .
 
+# temporary fix for dpp not returning correct exit code
+# TODO: remove once this PR is merged: https://github.com/frictionlessdata/datapackage-pipelines/pull/107
+RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/fix-exit-code.zip
+
 COPY bagnowka /pipelines/bagnowka
 COPY bin /pipelines/bin
 COPY clearmash /pipelines/clearmash

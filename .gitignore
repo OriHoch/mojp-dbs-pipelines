@@ -108,3 +108,4 @@ ENV/
 *.ede
 .data-docker
 /.docker/.data
+.code
