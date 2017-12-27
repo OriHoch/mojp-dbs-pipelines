@@ -8,133 +8,152 @@ web-content-folder-item-ids:
 
 
 download-entities:
-  description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
-  schedule:
-    # daily at 0:15 (presumably after entity-ids were added to DB)
-    crontab: "15 0 * * *"
+  description: "download entities based on the entity ids from web-content-folder-entitity-ids"
   pipeline:
-    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
-      parameters:
-        add-resource: entity-ids
-        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entity_ids_schema)
-        load-table: clearmash-entity-ids
-        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:get_override_item_ids_where)
-    # compares with clearmash-entities table (if exists) to determine if to re-download entities
-    - run: ..datapackage_pipelines_mojp.clearmash.processors.download
-      parameters:
-        input-resource: entity-ids
-        output-resource: entities
-        table: clearmash-entities
-    # deletes entities not allowed for display in ES
-    - run: ..datapackage_pipelines_mojp.common.processors.delete
-      parameters:
-        resource: entities
-        id-field: item_id
-        source: clearmash
-        display-allowed-field: display_allowed
-    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
-      parameters:
-        resource: entities
-        table: clearmash-entities
+  - run: load_resource
+    parameters:
+      url: ../data/clearmash/web-content-folder-entity-ids/datapackage.json
+      resource: entity-ids
+#  - run: filter
+#    parameters:
+#      in:
+#      - item_id: 115306
+#      - item_id: 115316
+#      - item_id: 232814
+#      - item_id: 232855
+  - run: download_entities
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/clearmash/download-entities
 
-download-related-entities:
-  description: "downloads related entities for entities in clearmash-entities table, uses logic to reduce number of API calls, but might result in not having all items (e.g. only the first page), updates entity-ids and entities tables in DB"
-  schedule:
-    # daily at 2:30 (after entities were updated in DB)
-    crontab: "30 2 * * *"
-  pipeline:
-    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
-      parameters:
-        add-resource: entities
-        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_schema)
-        load-table: clearmash-entities
-    # gets all the document ids from related fields in the source entry
-    # makes the call to get related fields only when needed
-    # compares against all document ids in the entities table
-    # and also against all document ids downloaded during this pipeline run
-    - run: ..datapackage_pipelines_mojp.clearmash.processors.download_related
-      parameters:
-        input-resource: entities
-        output-resource: related-entities
-        table: clearmash-entities
-    # deletes entities not allowed for display in ES
-    - run: ..datapackage_pipelines_mojp.common.processors.delete
-      parameters:
-        resource: related-entities
-        id-field: item_id
-        source: clearmash
-        display-allowed-field: display_allowed
-    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
-      parameters:
-        resource: related-entities
-        table: clearmash-entities
-
-entities-sync:
-  description: "syncs to elasticsearch all entities from clearmash-entities table for which last_downloaded > last_synced"
-  schedule:
-    # daily at 2:00 and 4:00 (after new and related entities were updated in DB)
-    crontab: "0 2,4 * * *"
-  pipeline:
-    # load new entities (last_synced IS NULL) or recently downloaded entities (last_downloaded > last_synced)
-    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
-      parameters:
-        add-resource: entities
-        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_schema)
-        load-table: clearmash-entities
-        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_sync_where)
-    # update the db with last synced time
-    # update is done immediately, as items come in
-    # this ensures items will not be synced even if they fail
-    - run: ..datapackage_pipelines_mojp.common.processors.update_db
-      parameters:
-        resource: entities
-        table: clearmash-entities
-        id-column: item_id
-        id-field: item_id
-        fields:
-          last_synced: (datetime:datetime.now)
-    # filters out items which are not for display
-    # converts to common dbs schema
-    # uses the entities table to get related document ids (doesn't make additional API calls for related docs)
-    - run: ..datapackage_pipelines_mojp.clearmash.processors.convert
-      parameters:
-        input-resource: entities
-        output-resource: dbs-docs
-        related-documents:
-          table: clearmash-entities
-          item-id-column: item_id
-          document-id-column: document_id
-    # sync to elasticsearch
-    - run: ..datapackage_pipelines_mojp.common.processors.sync
-      parameters:
-        input-resource: dbs-docs
-        output-resource: dbs-docs-sync-log
-    # dump sync log to file
-    - run: dump.to_path
-      parameters:
-        out-path: ../data/clearmash/new-entities-sync
-
-entities-delete:
-  description: "go over all items in ElasticSearch and delete any items which are not in entities or have display_allowed=false"
-  schedule:
-    # daily at 06:00 (hopefully after sync is done)
-    crontab: "0 6 * * *"
-  pipeline:
-    # all all dbs docs from elasticsearch matching the given source
-    - run: ..datapackage_pipelines_mojp.common.processors.load_elasticsearch_dbs_docs
-      parameters:
-        source: clearmash
-        add-resource: clearmash-dbs-docs
-    # compares with DB table and only leave rows which should be deleted
-    - run: ..datapackage_pipelines_mojp.clearmash.processors.filter_elastsicsearch_docs_to_delete
-      parameters:
-        input-resource: clearmash-dbs-docs
-        output-resource: clearmash-dbs-docs-to-delete
-        table: clearmash-entities
-    # delete all input docs from elasticsearch
-    - run: ..datapackage_pipelines_mojp.common.processors.delete
-      parameters:
-        resource: clearmash-dbs-docs-to-delete
-        id-field: item_id
-        source: clearmash
-        delete-all-input: true
+#download-entities:
+#  description: "downloads entities - both new and updated, according to last downloaded and hours_to_next_download, updates db table clearmash-entities"
+#  schedule:
+#    # daily at 0:15 (presumably after entity-ids were added to DB)
+#    crontab: "15 0 * * *"
+#  pipeline:
+#    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+#      parameters:
+#        add-resource: entity-ids
+#        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entity_ids_schema)
+#        load-table: clearmash-entity-ids
+#        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:get_override_item_ids_where)
+#    # compares with clearmash-entities table (if exists) to determine if to re-download entities
+#    - run: ..datapackage_pipelines_mojp.clearmash.processors.download
+#      parameters:
+#        input-resource: entity-ids
+#        output-resource: entities
+#        table: clearmash-entities
+#    # deletes entities not allowed for display in ES
+#    - run: ..datapackage_pipelines_mojp.common.processors.delete
+#      parameters:
+#        resource: entities
+#        id-field: item_id
+#        source: clearmash
+#        display-allowed-field: display_allowed
+#    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
+#      parameters:
+#        resource: entities
+#        table: clearmash-entities
+#
+#download-related-entities:
+#  description: "downloads related entities for entities in clearmash-entities table, uses logic to reduce number of API calls, but might result in not having all items (e.g. only the first page), updates entity-ids and entities tables in DB"
+#  schedule:
+#    # daily at 2:30 (after entities were updated in DB)
+#    crontab: "30 2 * * *"
+#  pipeline:
+#    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+#      parameters:
+#        add-resource: entities
+#        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_schema)
+#        load-table: clearmash-entities
+#    # gets all the document ids from related fields in the source entry
+#    # makes the call to get related fields only when needed
+#    # compares against all document ids in the entities table
+#    # and also against all document ids downloaded during this pipeline run
+#    - run: ..datapackage_pipelines_mojp.clearmash.processors.download_related
+#      parameters:
+#        input-resource: entities
+#        output-resource: related-entities
+#        table: clearmash-entities
+#    # deletes entities not allowed for display in ES
+#    - run: ..datapackage_pipelines_mojp.common.processors.delete
+#      parameters:
+#        resource: related-entities
+#        id-field: item_id
+#        source: clearmash
+#        display-allowed-field: display_allowed
+#    - run: ..datapackage_pipelines_mojp.common.processors.dump_to_sql
+#      parameters:
+#        resource: related-entities
+#        table: clearmash-entities
+#
+#entities-sync:
+#  description: "syncs to elasticsearch all entities from clearmash-entities table for which last_downloaded > last_synced"
+#  schedule:
+#    # daily at 2:00 and 4:00 (after new and related entities were updated in DB)
+#    crontab: "0 2,4 * * *"
+#  pipeline:
+#    # load new entities (last_synced IS NULL) or recently downloaded entities (last_downloaded > last_synced)
+#    - run: ..datapackage_pipelines_mojp.common.processors.load_sql_resource
+#      parameters:
+#        add-resource: entities
+#        schema: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_schema)
+#        load-table: clearmash-entities
+#        where: (datapackage_pipelines_mojp.clearmash.pipeline_funcs:entities_sync_where)
+#    # update the db with last synced time
+#    # update is done immediately, as items come in
+#    # this ensures items will not be synced even if they fail
+#    - run: ..datapackage_pipelines_mojp.common.processors.update_db
+#      parameters:
+#        resource: entities
+#        table: clearmash-entities
+#        id-column: item_id
+#        id-field: item_id
+#        fields:
+#          last_synced: (datetime:datetime.now)
+#    # filters out items which are not for display
+#    # converts to common dbs schema
+#    # uses the entities table to get related document ids (doesn't make additional API calls for related docs)
+#    - run: ..datapackage_pipelines_mojp.clearmash.processors.convert
+#      parameters:
+#        input-resource: entities
+#        output-resource: dbs-docs
+#        related-documents:
+#          table: clearmash-entities
+#          item-id-column: item_id
+#          document-id-column: document_id
+#    # sync to elasticsearch
+#    - run: ..datapackage_pipelines_mojp.common.processors.sync
+#      parameters:
+#        input-resource: dbs-docs
+#        output-resource: dbs-docs-sync-log
+#    # dump sync log to file
+#    - run: dump.to_path
+#      parameters:
+#        out-path: ../data/clearmash/new-entities-sync
+#
+#entities-delete:
+#  description: "go over all items in ElasticSearch and delete any items which are not in entities or have display_allowed=false"
+#  schedule:
+#    # daily at 06:00 (hopefully after sync is done)
+#    crontab: "0 6 * * *"
+#  pipeline:
+#    # all all dbs docs from elasticsearch matching the given source
+#    - run: ..datapackage_pipelines_mojp.common.processors.load_elasticsearch_dbs_docs
+#      parameters:
+#        source: clearmash
+#        add-resource: clearmash-dbs-docs
+#    # compares with DB table and only leave rows which should be deleted
+#    - run: ..datapackage_pipelines_mojp.clearmash.processors.filter_elastsicsearch_docs_to_delete
+#      parameters:
+#        input-resource: clearmash-dbs-docs
+#        output-resource: clearmash-dbs-docs-to-delete
+#        table: clearmash-entities
+#    # delete all input docs from elasticsearch
+#    - run: ..datapackage_pipelines_mojp.common.processors.delete
+#      parameters:
+#        resource: clearmash-dbs-docs-to-delete
+#        id-field: item_id
+#        source: clearmash
+#        delete-all-input: true
