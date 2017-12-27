@@ -26,8 +26,8 @@ aggregations = {"stats": stats}
 api = ClearmashApi()
 
 
-def get_entity(entity_id_row):
-    for doc in parse_clearmash_documents(api.get_documents([entity_id_row["item_id"]])):
+def get_entities(entity_ids):
+    for doc in parse_clearmash_documents(api.get_documents(entity_ids)):
         doc.update(collection=TEMPLATE_ID_COLLECTION_MAP.get(doc["template_id"], "unknown"),
                    display_allowed=doc_show_filter(doc["parsed_doc"]))
         stats["total downloaded"] += 1
@@ -44,11 +44,18 @@ def get_resource():
             if not row["folder_id"] and not row["collection"] and not row["item_id"]:
                 assert json.loads(row["item_name"]).get("reached max recursion depth")
             else:
-                yield get_entity(row)
+                yield from get_entities([row["item_id"]])
 
 
 if CLI_MODE:
-    raise NotImplemented()
+    if len(sys.argv) < 3:
+        print("Usage: python clearmash/download_entities.py --cli COMMA_SEPARATED_ENTITY_IDS")
+    else:
+        entity_ids = list(map(int, sys.argv[2].split(",")))
+        print("entity_ids={}".format(entity_ids))
+        for doc in get_entities(entity_ids):
+            print("--{}".format(doc["item_id"]))
+            print(json.dumps(doc, indent=2, ensure_ascii=False))
 else:
     spew(dict(datapackage, resources=[{PROP_STREAMING: True,
                                        "name": "entities",
