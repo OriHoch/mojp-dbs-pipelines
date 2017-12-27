@@ -24,8 +24,6 @@ script:
                                      '${DEPLOY_REPO}' \
                                      '${DEPLOY_BRANCH}' \
               && echo 'failed helm update values' && exit 1
-           # ! kubectl set image deployment/ops ops=$IMAGE_TAG \
-           #    && echo 'failed to patch deployment' && exit 1
            ! gcloud container builds submit --tag $IMAGE_TAG /app \
               && echo 'failed to build app image' && exit 1
            exit 0
