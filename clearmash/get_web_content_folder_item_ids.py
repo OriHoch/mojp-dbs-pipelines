@@ -89,8 +89,7 @@ else:
     entity_ids_resource = {PROP_STREAMING: True,
                            "name": "entity-ids",
                            "path": "entity-ids.csv",
-                           "schema": {"fields": [{"name": r, "type": t} for r, o, t in FIELDS],
-                                      "primaryKey": ["id"]}}
+                           "schema": {"fields": [{"name": r, "type": t} for r, o, t in FIELDS]}}
     entity_ids_resource["schema"]["fields"] += [{"name": "parent_folder_names", "type": "string"},
                                                 {"name": "parent_folder_ids", "type": "string"}]
     spew(dict(datapackage, resources=[entity_ids_resource]),

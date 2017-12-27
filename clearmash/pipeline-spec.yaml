@@ -19,10 +19,10 @@ download-entities:
 #  - run: filter
 #    parameters:
 #      in:
-#      - item_id: 115306
-#      - item_id: 115316
-#      - item_id: 232814
-#      - item_id: 232855
+#      - id: 115306
+#      - id: 115316
+#      - id: 232814
+#      - id: 232855
   - run: download_entities
   - run: dump.to_path
     parameters:
