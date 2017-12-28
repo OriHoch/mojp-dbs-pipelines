@@ -40,7 +40,7 @@ else:
 parameters = dict({"max-recursion-depth": int(os.environ.get("MAX_RECURSION_DEPTH", "-1"))}, **parameters)
 logging.info(parameters)
 stats = {}
-aggregations = {"stats": stats}
+aggregations = {"stats": stats, "error_folder_ids": set()}
 
 
 api = ClearmashApi()
@@ -64,22 +64,30 @@ def get_folder_items(folder_id, recursion_depth=0, recursion_folders=None):
         parent_folder_ids = ">".join([str(folder["Id"]) for folder in recursion_folders])
     if recursion_depth > 2:
         logging.info("reucrsion depth = {}, parent_folder_names = {}".format(recursion_depth, parent_folder_names))
-    doc = api.get_web_document_system_folder(folder_id)
-    for item in doc["Items"]:
-        yield get_row(item, parent_folder_names, parent_folder_ids)
-    for folder in doc["Folders"]:
-        yield get_row(folder, parent_folder_names, parent_folder_ids)
-        if parameters["max-recursion-depth"] == -1 or recursion_depth < parameters["max-recursion-depth"]:
-            recursion_folders.append(folder)
-            yield from get_folder_items(folder["Id"], recursion_depth+1, recursion_folders)
-        else:
-            logging.warning("Reached folders max recursion depth")
+    try:
+        if folder_id not in (40, 51):
+            raise NotImplementedError("foobar")
+        doc = api.get_web_document_system_folder(folder_id)
+        for item in doc["Items"]:
+            yield get_row(item, parent_folder_names, parent_folder_ids)
+        for folder in doc["Folders"]:
+            yield get_row(folder, parent_folder_names, parent_folder_ids)
+            if parameters["max-recursion-depth"] == -1 or recursion_depth < parameters["max-recursion-depth"]:
+                recursion_folders.append(folder)
+                yield from get_folder_items(folder["Id"], recursion_depth + 1, recursion_folders)
+            else:
+                logging.warning("Reached folders max recursion depth")
+    except Exception:
+        logging.exception("failed to get web document system folder {}".format(folder_id))
+        aggregations["error_folder_ids"].add(int(folder_id))
+
 
 
 def get_resource():
     for folder in api.get_documents_root_folders():
         yield get_row(folder)
         yield from get_folder_items(folder["Id"], 0, [folder])
+    logging.error("failed folder ids: {}".format(", ".join(map(str, aggregations["error_folder_ids"]))))
 
 
 if CLI_MODE:
