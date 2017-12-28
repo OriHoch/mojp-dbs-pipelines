@@ -65,8 +65,6 @@ def get_folder_items(folder_id, recursion_depth=0, recursion_folders=None):
     if recursion_depth > 2:
         logging.info("reucrsion depth = {}, parent_folder_names = {}".format(recursion_depth, parent_folder_names))
     try:
-        if folder_id not in (40, 51):
-            raise NotImplementedError("foobar")
         doc = api.get_web_document_system_folder(folder_id)
         for item in doc["Items"]:
             yield get_row(item, parent_folder_names, parent_folder_ids)
