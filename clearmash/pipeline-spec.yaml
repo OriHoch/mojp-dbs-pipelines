@@ -2,11 +2,43 @@ web-content-folder-item-ids:
   description: "recursively downloads list of entity ids from clearmash web content folders"
   pipeline:
   - run: get_web_content_folder_item_ids
-#    parameters:
-#      max-recursion-depth: 1
+    parameters:
+      max-recursion-depth: 2
   - run: dump.to_path
     parameters:
       out-path: ../data/clearmash/web-content-folder-entity-ids
+
+
+folders:
+  description: "get all the folders from the web-content-folder-entity-ids data"
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/clearmash/web-content-folder-entity-ids/datapackage.json
+      resource: entity-ids
+  - run: filter
+    parameters:
+      in:
+      - is_folder: True
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/clearmash/folders
+
+
+entity-ids:
+  description: "get all the entitiy ids from the web-content-folder-entity-ids data"
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/clearmash/web-content-folder-entity-ids/datapackage.json
+      resource: entity-ids
+  - run: filter
+    parameters:
+      out:
+      - is_folder: True
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/clearmash/entity-ids
 
 
 download-entities:
